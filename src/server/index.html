@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WhatsApp Sidebar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../utils/element.js"></script>
+    <script>
+      const { createElement } = await import('./sidebar.js');
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const app = createElement('div', { class: 'flex h-screen bg-gray-900 text-white' });
+        document.body.appendChild(app);
+
+        const sidebar = createElement('div', { class: 'w-1/4 bg-gray-800 p-4' }, [
+          createElement('div', { class: 'mb-4' }, [
+            createElement('input', { class: 'w-full p-2 rounded bg-gray-700 text-white', type: 'text', placeholder: 'Rechercher' })
+          ]),
+          createElement('div', { class: 'space-y-2' }, [
+            createElement('div', { class: 'flex items-center p-2 bg-gray-700 rounded' }, [
+              createElement('span', { class: 'text-green-500 mr-2' }, '•'),
+              createElement('span', 'Toutes'),
+              createElement('span', { class: 'ml-auto text-gray-400' }, '2')
+            ]),
+            createElement('div', { class: 'flex items-center p-2 hover:bg-gray-700 rounded' }, [
+              createElement('span', { class: 'text-gray-400 mr-2' }, '•'),
+              createElement('span', 'Non lues'),
+              createElement('span', { class: 'ml-auto text-gray-400' }, '1')
+            ]),
+            createElement('div', { class: 'flex items-center p-2 hover:bg-gray-700 rounded' }, [
+              createElement('span', { class: 'text-gray-400 mr-2' }, '•'),
+              createElement('span', 'Favoris')
+            ]),
+            createElement('div', { class: 'flex items-center p-2 hover:bg-gray-700 rounded' }, [
+              createElement('span', { class: 'text-gray-400 mr-2' }, '•'),
+              createElement('span', 'Groupes')
+            ]),
+            createElement('div', { class: 'mt-4 text-gray-400' }, 'Discussions verrouillées'),
+            createElement('div', { class: 'flex items-center p-2 hover:bg-gray-700 rounded' }, [
+              createElement('span', { class: 'text-gray-400 mr-2' }, '•'),
+              createElement('span', 'Archivées'),
+              createElement('span', { class: 'ml-auto text-gray-400' }, '1')
+            ])
+          ])
+        ]);
+        app.appendChild(sidebar);
+      });
+    </script>
+  </head>
+  <body></body>
+</html>

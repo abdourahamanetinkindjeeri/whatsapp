@@ -1,0 +1,46 @@
+[{
+    id : 1,
+    nom : 'DIA',
+    prenom : 'Moussa',
+    status : true,
+    archive : true,
+    delete : true,
+    telephone '7600100107'
+}]
+
+contacts = [
+    {
+       id : 1,
+       nomGroup : 'ODC',
+       delete : false,
+       dateCreate : new Date(),
+       membre : [idContact],
+        admin : [id]
+
+    //    Potentiel gerer le createur du groupe : 
+    }
+]
+
+message = [
+    {
+        idSend : 20
+        idReceveved : 100,
+        [
+            {
+                message : "Bonjour Gadir",
+                type : 'sent',
+                date : new Date(),
+                delete : false,
+                read : false
+            }
+            ,
+            {
+                message : "Bonjour Gadir",
+                type : 'receved',
+                date : new Date(),
+                delete : false,
+                read : true
+            }
+        ]
+    }
+]

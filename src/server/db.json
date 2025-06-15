@@ -1,0 +1,173 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "prenom": "Mamadou",
+      "nom": "Diop",
+      "telephone": "771001010",
+      "delete": false,
+      "archive": false
+    },
+    {
+      "id": "2",
+      "prenom": "Aïssatou",
+      "nom": "Sall",
+      "telephone": "775234567",
+      "delete": false,
+      "archive": true
+    },
+    {
+      "id": "3",
+      "prenom": "Ousmane",
+      "nom": "Ndiaye",
+      "telephone": "773456789",
+      "delete": true,
+      "archive": false
+    },
+    {
+      "id": "4",
+      "prenom": "Fatou",
+      "nom": "Kane",
+      "telephone": "776789012",
+      "delete": false,
+      "archive": false
+    },
+    {
+      "id": "5",
+      "prenom": "Ibrahima",
+      "nom": "Sy",
+      "telephone": "777890123",
+      "delete": false,
+      "archive": false
+    },
+    {
+      "id": "6",
+      "prenom": "Bineta",
+      "nom": "Fall",
+      "telephone": "778901234",
+      "delete": false,
+      "archive": true
+    },
+    {
+      "id": 1750005282969,
+      "nom": "Diallo",
+      "prenom": "Abdoul",
+      "status": false,
+      "archive": false,
+      "delete": false,
+      "telephone": "772707050"
+    }
+  ],
+  "groups": [
+    {
+      "id": "1",
+      "nom": "Ndey Sunu Kër",
+      "description": "Famille élargie",
+      "membres": [
+        {
+          "userId": "1",
+          "role": "admin",
+          "dateAjout": "2024-01-15T10:30:00Z"
+        },
+        {
+          "userId": "4",
+          "role": "membre",
+          "dateAjout": "2024-01-16T11:00:00Z"
+        }
+      ],
+      "admin": "1",
+      "dateCreation": "2024-01-15T10:30:00Z",
+      "archive": false,
+      "delete": false
+    },
+    {
+      "id": "2",
+      "nom": "Liggéey Ak Njariñ",
+      "description": "Équipe de développement",
+      "membres": [
+        {
+          "userId": "2",
+          "role": "admin",
+          "dateAjout": "2024-02-01T14:20:00Z"
+        },
+        {
+          "userId": "5",
+          "role": "membre",
+          "dateAjout": "2024-02-02T09:30:00Z"
+        },
+        {
+          "userId": "1",
+          "role": "membre",
+          "dateAjout": "2024-02-05T16:15:00Z"
+        }
+      ],
+      "admin": "2",
+      "dateCreation": "2024-02-01T14:20:00Z",
+      "archive": false,
+      "delete": false
+    },
+    {
+      "id": "3",
+      "nom": "Xarit Université",
+      "description": "Anciens camarades de classe",
+      "membres": [
+        {
+          "userId": "1",
+          "role": "admin",
+          "dateAjout": "2024-01-20T16:45:00Z"
+        },
+        {
+          "userId": "6",
+          "role": "membre",
+          "dateAjout": "2024-01-21T10:20:00Z"
+        }
+      ],
+      "admin": "1",
+      "dateCreation": "2024-01-20T16:45:00Z",
+      "archive": true,
+      "delete": false
+    },
+    {
+      "id": "4",
+      "nom": "Yëkkati Mbolo",
+      "description": "Groupe de course et fitness",
+      "membres": [
+        {
+          "userId": "1",
+          "role": "admin",
+          "dateAjout": "2024-03-10T09:15:00Z"
+        }
+      ],
+      "admin": "1",
+      "dateCreation": "2024-03-10T09:15:00Z",
+      "archive": false,
+      "delete": true
+    },
+    {
+      "id": "5",
+      "nom": "Tontine Marché",
+      "description": "Groupe d'épargne communautaire",
+      "membres": [
+        {
+          "userId": "1",
+          "role": "admin",
+          "dateAjout": "2024-01-10T08:00:00Z"
+        },
+        {
+          "userId": "4",
+          "role": "trésorier",
+          "dateAjout": "2024-01-10T08:05:00Z"
+        },
+        {
+          "userId": "5",
+          "role": "membre",
+          "dateAjout": "2024-01-12T14:30:00Z"
+        }
+      ],
+      "admin": "1",
+      "dateCreation": "2024-01-10T08:00:00Z",
+      "archive": false,
+      "delete": false
+    }
+  ]
+}

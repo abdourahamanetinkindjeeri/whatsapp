@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.hover-bg-gold:hover {
+  background-color: #e1b34b !important;
+}
+
+* {
+  box-sizing: border-box;
+}
