@@ -100,8 +100,9 @@ const getAvailableContacts = async () => {
 const getMessages = async (userId1, userId2) => {
   try {
     const messages = (await readData("messages")) || [];
+    console.log("Messages récupérés:", messages); // Log pour voir tous les messages
 
-    return messages
+    const filteredMessages = messages
       .filter(
         (msg) =>
           msg &&
@@ -114,7 +115,11 @@ const getMessages = async (userId1, userId2) => {
               String(msg.recipientId) === String(userId1)))
       )
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    console.log("Messages filtrés:", filteredMessages); // Log pour voir les messages filtrés
+    return filteredMessages;
   } catch (error) {
+    console.error("Erreur lors de la récupération des messages:", error);
     return [];
   }
 };
@@ -165,20 +170,26 @@ const displayMessage = async (messageObj, isSentByMe = false) => {
     messageObj.isSelfMessage ||
     String(messageObj.senderId) === String(messageObj.recipientId);
 
-  // Récupérer les informations du contact pour l'avatar
+  // Récupérer les informations du contact et de l'utilisateur connecté
   let contactInfo = null;
-  if (!isSentByMe) {
-    try {
-      const users = await readData("users");
-      contactInfo = users.find(
-        (u) => String(u.id) === String(messageObj.senderId)
-      );
-    } catch (error) {
-      console.error(
-        "Erreur lors de la récupération des informations du contact:",
-        error
-      );
-    }
+  let currentUserInfo = null;
+  try {
+    const users = await readData("users");
+    console.log("Tous les utilisateurs:", users);
+
+    // Récupérer les informations du contact
+    contactInfo = users.find(
+      (u) => String(u.id) === String(messageObj.senderId)
+    );
+
+    // Récupérer les informations de l'utilisateur connecté
+    const currentUserId = getCurrentUserId();
+    currentUserInfo = users.find((u) => String(u.id) === String(currentUserId));
+
+    console.log("Contact trouvé:", contactInfo);
+    console.log("Utilisateur connecté:", currentUserInfo);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des informations:", error);
   }
 
   const messageElement = createElement(
@@ -193,6 +204,7 @@ const displayMessage = async (messageObj, isSentByMe = false) => {
       ],
     },
     [
+      // Avatar du contact (uniquement pour les messages reçus)
       ...(isSentByMe
         ? []
         : [
@@ -221,7 +233,10 @@ const displayMessage = async (messageObj, isSentByMe = false) => {
                       `Contact ${contactInfo.id}`,
                     class: ["w-full", "h-full", "object-cover"],
                     onerror: (e) => {
-                      console.error("Erreur de chargement de l'avatar:", e);
+                      console.error(
+                        "Erreur de chargement de l'avatar du contact:",
+                        e
+                      );
                       e.target.style.display = "none";
                       e.target.parentElement.innerHTML =
                         '<i class="fas fa-user text-gray-600 text-sm"></i>';
@@ -274,54 +289,22 @@ const displayMessage = async (messageObj, isSentByMe = false) => {
                 ),
               ]
             : []),
-          ...(isSentByMe
-            ? []
-            : [
-                createElement(
-                  "div",
-                  {
-                    class: ["text-xs", "font-medium", "mb-1", "text-gray-600"],
-                  },
-                  messageObj.senderName || "Utilisateur"
-                ),
-              ]),
-          createElement(
-            "p",
-            { class: ["text-sm", "break-words"] },
-            messageObj.content
-          ),
+          createElement("div", { class: ["text-sm"] }, messageObj.content),
           createElement(
             "div",
             {
-              class: ["flex", "items-center", "justify-end", "gap-1", "mt-1"],
+              class: [
+                "text-xs",
+                "mt-1",
+                "text-right",
+                isSentByMe ? "text-blue-100" : "text-gray-500",
+              ],
             },
-            [
-              createElement(
-                "p",
-                {
-                  class: ["text-xs", "opacity-70"],
-                },
-                new Date(messageObj.timestamp).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              ),
-              ...(isSentByMe && !isSelfMessage
-                ? [
-                    createElement("i", {
-                      class: [
-                        "fas",
-                        messageObj.read ? "fa-check-double" : "fa-check",
-                        messageObj.read ? "text-blue-300" : "text-gray-400",
-                        "text-xs",
-                      ],
-                    }),
-                  ]
-                : []),
-            ]
+            formatTime(new Date(messageObj.timestamp))
           ),
         ]
       ),
+      // Avatar de l'utilisateur connecté (uniquement pour les messages envoyés)
       ...(isSentByMe
         ? [
             createElement(
@@ -331,19 +314,36 @@ const displayMessage = async (messageObj, isSentByMe = false) => {
                   "w-8",
                   "h-8",
                   "rounded-full",
-                  "bg-blue-100",
+                  "bg-gray-200",
                   "flex",
                   "items-center",
                   "justify-center",
-                  "text-blue-600",
+                  "text-gray-600",
                   "flex-shrink-0",
+                  "overflow-hidden",
                 ],
               },
-              [
-                createElement("i", {
-                  class: ["fas", "fa-user", "text-sm"],
-                }),
-              ]
+              currentUserInfo?.profile?.avatar
+                ? createElement("img", {
+                    src: currentUserInfo.profile.avatar,
+                    alt:
+                      currentUserInfo.nom ||
+                      currentUserInfo.name ||
+                      `Utilisateur ${currentUserInfo.id}`,
+                    class: ["w-full", "h-full", "object-cover"],
+                    onerror: (e) => {
+                      console.error(
+                        "Erreur de chargement de l'avatar de l'utilisateur:",
+                        e
+                      );
+                      e.target.style.display = "none";
+                      e.target.parentElement.innerHTML =
+                        '<i class="fas fa-user text-gray-600 text-sm"></i>';
+                    },
+                  })
+                : createElement("i", {
+                    class: ["fas", "fa-user", "text-sm"],
+                  })
             ),
           ]
         : []),
