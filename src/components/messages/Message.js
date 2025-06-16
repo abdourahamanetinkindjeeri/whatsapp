@@ -9,6 +9,7 @@ import {
 } from "../discussion/contacts/selectedContactsManager.js";
 import { createElement } from "../../utils/element.js";
 import { authManager } from "../auth/authManager.js";
+import { formatTime } from "../../utils/date.js";
 
 // ===== VARIABLES GLOBALES =====
 let currentRecipient = null;
@@ -100,7 +101,6 @@ const getAvailableContacts = async () => {
 const getMessages = async (userId1, userId2) => {
   try {
     const messages = (await readData("messages")) || [];
-    console.log("Messages récupérés:", messages); // Log pour voir tous les messages
 
     const filteredMessages = messages
       .filter(
@@ -328,7 +328,6 @@ const displayMessage = async (messageObj, isSentByMe = false) => {
                     src: currentUserInfo.profile.avatar,
                     alt:
                       currentUserInfo.nom ||
-                      currentUserInfo.name ||
                       `Utilisateur ${currentUserInfo.id}`,
                     class: ["w-full", "h-full", "object-cover"],
                     onerror: (e) => {
@@ -424,12 +423,99 @@ const loadConversation = async (recipientId) => {
   }
 };
 
-const selectContact = async (contactId, contactName) => {
+const updateChatHeader = (info, type = "contact") => {
+  console.log("=== updateChatHeader ===");
+  console.log("Type:", type);
+  console.log("Info:", info);
+
+  const headerElement = document.getElementById("chatHeaderName");
+  const statusElement = document.getElementById("chatHeaderStatus");
+
+  console.log("Header Element:", headerElement);
+  console.log("Status Element:", statusElement);
+
+  if (!headerElement) {
+    console.error("Header element not found!");
+    return;
+  }
+
+  // Réinitialiser le contenu
+  console.log("Resetting content...");
+  headerElement.innerHTML = "";
+  if (statusElement) statusElement.innerHTML = "";
+
+  if (type === "group") {
+    console.log("Updating for group...");
+    // Style pour les groupes
+    const groupContent = `<i class='fas fa-users text-blue-600 text-lg' style='margin-right:8px;'></i> ${
+      info.nom || "Groupe sans nom"
+    }`;
+    console.log("Group content:", groupContent);
+    headerElement.innerHTML = groupContent;
+
+    if (statusElement) {
+      const memberCount = `${info.membres?.length || 0} membres`;
+      console.log("Member count:", memberCount);
+      statusElement.textContent = memberCount;
+    }
+  } else {
+    console.log("Updating for contact...");
+    // Style pour les contacts
+    const contactContent = `<i class='fas fa-user text-blue-600 text-lg' style='margin-right:8px;'></i> ${
+      info.nom || info.name || "Contact"
+    }`;
+    console.log("Contact content:", contactContent);
+    headerElement.innerHTML = contactContent;
+
+    if (statusElement) {
+      const status = info.status || "En ligne";
+      console.log("Status:", status);
+      statusElement.textContent = status;
+    }
+  }
+
+  console.log("=== End updateChatHeader ===");
+};
+
+const selectContact = async (contactId, contactName, type) => {
+  console.log("=== selectContact ===");
+  console.log("Contact ID:", contactId);
+  console.log("Contact Name:", contactName);
+  console.log("Type:", type);
+
   const normalizedContactId = String(contactId);
   currentRecipient = normalizedContactId;
+  window.currentRecipientType = type || "contact";
 
-  await loadConversation(normalizedContactId);
-  updateChatHeader(contactName);
+  console.log("Current Recipient:", currentRecipient);
+  console.log("Current Recipient Type:", window.currentRecipientType);
+
+  // Vider la zone de messages à chaque sélection
+  const messagesContainer = document.getElementById("messagesContainer");
+  if (messagesContainer) {
+    messagesContainer.innerHTML = "";
+  }
+
+  if (type === "group") {
+    console.log("Initializing group chat...");
+    try {
+      // Import dynamique pour éviter les cycles
+      const { initGroupChat } = await import("./GroupMessage.js");
+      console.log("initGroupChat imported successfully");
+      await initGroupChat(normalizedContactId);
+      console.log("Group chat initialized successfully");
+    } catch (error) {
+      console.error("Error initializing group chat:", error);
+    }
+  } else {
+    console.log("Loading contact conversation...");
+    await loadConversation(normalizedContactId);
+    // Récupérer les infos du contact pour le header
+    const users = await readData("users");
+    const contact = users.find((u) => String(u.id) === normalizedContactId);
+    updateChatHeader(contact, "contact");
+  }
+
   highlightSelectedContact(normalizedContactId);
   closeContactSelector();
 
@@ -447,10 +533,13 @@ const selectContact = async (contactId, contactName) => {
       detail: {
         contactId: normalizedContactId,
         contactName: contactName,
+        type: type,
         timestamp: new Date().toISOString(),
       },
     })
   );
+
+  console.log("=== End selectContact ===");
 };
 
 const handleSecureMessageSend = () => {
@@ -491,7 +580,16 @@ const _performSendMessage = async () => {
     return;
   }
 
-  const result = await sendMessage(currentUserId, currentRecipient, message);
+  // Détecter le type de destinataire (groupe ou contact)
+  const recipientType = window.currentRecipientType || "contact";
+  let result;
+  if (recipientType === "group") {
+    // Import dynamique si besoin
+    const { sendGroupMessage } = await import("./GroupMessage.js");
+    result = await sendGroupMessage(currentRecipient, message);
+  } else {
+    result = await sendMessage(currentUserId, currentRecipient, message);
+  }
 
   if (result.success) {
     messageInput.value = "";
@@ -508,10 +606,17 @@ const _performSendMessage = async () => {
 };
 
 const showContactSelector = async () => {
+  // Récupérer contacts et groupes
   const contacts = await getAvailableContacts();
+  const groups = (await readData("groups")) || [];
+  const activeGroups = groups.filter(
+    (g) => g.delete === false && g.archive === false
+  );
 
-  if (contacts.length === 0) {
-    alert("Aucun contact disponible pour commencer une conversation.");
+  if (contacts.length === 0 && activeGroups.length === 0) {
+    alert(
+      "Aucun contact ou groupe disponible pour commencer une conversation."
+    );
     return;
   }
 
@@ -542,70 +647,122 @@ const showContactSelector = async () => {
             {
               class: ["text-lg", "font-semibold", "mb-4"],
             },
-            "Sélectionner un contact"
+            "Sélectionner un contact ou un groupe"
           ),
           createElement(
             "div",
             {
               class: ["space-y-2", "max-h-64", "overflow-y-auto"],
             },
-            contacts.map((contact) =>
-              createElement(
-                "button",
-                {
-                  class: [
-                    "w-full",
-                    "text-left",
-                    "p-3",
-                    "hover:bg-gray-100",
-                    "rounded",
-                    "border",
-                    "transition",
-                    "flex",
-                    "items-center",
-                    "gap-3",
-                  ],
-                  onclick: () => selectContact(contact.id, contact.name),
-                },
-                [
-                  createElement(
-                    "div",
-                    {
-                      class: [
-                        "w-8",
-                        "h-8",
-                        "rounded-full",
-                        "bg-gray-200",
-                        "flex",
-                        "items-center",
-                        "justify-center",
-                        "text-gray-600",
-                      ],
-                    },
-                    [
-                      createElement("i", {
-                        class: ["fas", "fa-user", "text-sm"],
-                      }),
-                    ]
-                  ),
-                  createElement(
-                    "div",
-                    {
-                      class: ["flex-1"],
-                    },
-                    [
+            [
+              // Groupes d'abord
+              ...activeGroups.map((group) =>
+                createElement(
+                  "button",
+                  {
+                    class: [
+                      "w-full",
+                      "text-left",
+                      "p-3",
+                      "hover:bg-blue-50",
+                      "rounded",
+                      "border",
+                      "transition",
+                      "flex",
+                      "items-center",
+                      "gap-3",
+                      "border-blue-200",
+                    ],
+                    onclick: () => selectContact(group.id, group.nom, "group"),
+                  },
+                  [
+                    createElement(
+                      "div",
+                      {
+                        class: [
+                          "w-8",
+                          "h-8",
+                          "rounded-full",
+                          "bg-blue-200",
+                          "flex",
+                          "items-center",
+                          "justify-center",
+                          "text-blue-700",
+                        ],
+                      },
+                      [
+                        createElement("i", {
+                          class: ["fas", "fa-users", "text-sm"],
+                        }),
+                      ]
+                    ),
+                    createElement("div", { class: ["flex-1"] }, [
                       createElement(
                         "div",
-                        {
-                          class: ["font-medium"],
-                        },
+                        { class: ["font-medium"] },
+                        group.nom
+                      ),
+                      createElement(
+                        "div",
+                        { class: ["text-xs", "text-blue-500"] },
+                        "Groupe"
+                      ),
+                    ]),
+                  ]
+                )
+              ),
+              // Puis contacts
+              ...contacts.map((contact) =>
+                createElement(
+                  "button",
+                  {
+                    class: [
+                      "w-full",
+                      "text-left",
+                      "p-3",
+                      "hover:bg-gray-100",
+                      "rounded",
+                      "border",
+                      "transition",
+                      "flex",
+                      "items-center",
+                      "gap-3",
+                    ],
+                    onclick: () =>
+                      selectContact(contact.id, contact.name, "contact"),
+                  },
+                  [
+                    createElement(
+                      "div",
+                      {
+                        class: [
+                          "w-8",
+                          "h-8",
+                          "rounded-full",
+                          "bg-gray-200",
+                          "flex",
+                          "items-center",
+                          "justify-center",
+                          "text-gray-600",
+                        ],
+                      },
+                      [
+                        createElement("i", {
+                          class: ["fas", "fa-user", "text-sm"],
+                        }),
+                      ]
+                    ),
+                    createElement("div", { class: ["flex-1"] }, [
+                      createElement(
+                        "div",
+                        { class: ["font-medium"] },
                         contact.name
                       ),
-                    ]
-                  ),
-                ]
-              )
-            )
+                    ]),
+                  ]
+                )
+              ),
+            ]
           ),
           createElement(
             "button",
@@ -634,13 +791,6 @@ const showContactSelector = async () => {
 const closeContactSelector = () => {
   const modal = document.getElementById("contactSelectorModal");
   if (modal) modal.remove();
-};
-
-const updateChatHeader = (contactName) => {
-  const headerElement = document.getElementById("chatHeaderName");
-  if (headerElement) {
-    headerElement.textContent = contactName;
-  }
 };
 
 const highlightSelectedContact = (contactId) => {
@@ -768,9 +918,19 @@ const createMessage = () => {
     "Sélectionner un contact"
   );
 
+  // Ajout du span pour le statut dynamique
+  const chatHeaderStatus = createElement(
+    "span",
+    { id: "chatHeaderStatus", class: ["text-xs", "text-gray-500"] },
+    "En ligne"
+  );
+
   const messageComponent = createElement(
     "div",
-    { class: ["flex", "w-full", "h-screen", "border-t", "border-gray-200"] },
+    {
+      class: ["flex", "w-full", "h-screen", "border-t", "border-gray-200"],
+      id: "messageComponent",
+    },
     [
       createElement(
         "div",
@@ -790,6 +950,7 @@ const createMessage = () => {
                 "bg-white",
                 "shadow-sm",
               ],
+              id: "chatHeader",
             },
             [
               createElement(
@@ -822,14 +983,7 @@ const createMessage = () => {
                     {
                       class: ["flex", "flex-col"],
                     },
-                    [
-                      chatHeaderName,
-                      createElement(
-                        "span",
-                        { class: ["text-xs", "text-gray-500"] },
-                        "En ligne"
-                      ),
-                    ]
+                    [chatHeaderName, chatHeaderStatus]
                   ),
                 ]
               ),
@@ -1092,6 +1246,7 @@ export {
   handleSecureMessageSend,
   createMessage,
   renderContactListInPanel,
+  updateChatHeader,
 };
 export const testContactSelection = (contactId, contactName) => {
   selectContact(contactId, contactName);

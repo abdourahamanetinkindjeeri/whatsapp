@@ -584,99 +584,61 @@ export const updateGroupsList = async () => {
             "cursor-pointer",
           ],
           onclick: async () => {
-            discussionList.innerHTML = "";
-            discussionList.append(addGroupButton);
-
-            // Afficher les informations du groupe
-            const groupInfo = createElement(
-              "div",
-              {
-                class: ["p-4", "bg-white", "rounded-lg", "shadow", "mb-4"],
-              },
-              [
-                createElement(
-                  "h2",
-                  {
-                    class: ["text-xl", "font-bold", "mb-2"],
-                  },
-                  group.nom || "Groupe sans nom"
-                ),
-                createElement(
-                  "p",
-                  {
-                    class: ["text-gray-600"],
-                  },
-                  `${group.membres?.length || 0} membres`
-                ),
-              ]
-            );
-
-            discussionList.append(groupInfo);
-
-            // Afficher la liste des membres
-            const membersList = await displayGroupMembers(group.id);
-            discussionList.append(membersList);
-
-            // Ajouter le bouton de retour
-            const backButton = createElement(
-              "button",
-              {
-                class: [
-                  "px-4",
-                  "py-2",
-                  "bg-gray-600",
-                  "text-white",
-                  "rounded",
-                  "hover:bg-gray-700",
-                  "transition",
-                  "mt-4",
-                ],
-                onclick: () => updateGroupsList(),
-              },
-              "Retour à la liste des groupes"
-            );
-
-            discussionList.append(backButton);
+            // Importer selectContact dynamiquement
+            const { selectContact } = await import("../../messages/Message.js");
+            console.log("Selecting group:", group.id, group.nomGroup);
+            await selectContact(group.id, group.nomGroup, "group");
           },
         },
         [
           createElement(
             "div",
             {
-              class: [
-                "w-10",
-                "h-10",
-                "rounded-full",
-                "mr-2",
-                "bg-gray-500",
-                "flex",
-                "items-center",
-                "justify-center",
-                "font-bold",
-              ],
+              class: ["flex", "items-center", "gap-3", "flex-1"],
             },
-            (group.nom || "NN").slice(0, 2).toUpperCase()
+            [
+              createElement(
+                "div",
+                {
+                  class: [
+                    "w-10",
+                    "h-10",
+                    "bg-blue-500",
+                    "rounded-full",
+                    "flex",
+                    "items-center",
+                    "justify-center",
+                    "text-white",
+                  ],
+                },
+                createElement("i", {
+                  class: ["fas", "fa-users"],
+                })
+              ),
+              createElement(
+                "div",
+                {
+                  class: ["flex-1"],
+                },
+                [
+                  createElement(
+                    "div",
+                    {
+                      class: ["font-medium"],
+                    },
+                    group.nomGroup || "Groupe sans nom"
+                  ),
+                  createElement(
+                    "div",
+                    {
+                      class: ["text-sm", "text-gray-500"],
+                    },
+                    `${group.membres?.length || 0} membres`
+                  ),
+                ]
+              ),
+            ]
           ),
-          createElement("div", { class: ["flex-1"] }, [
-            createElement(
-              "div",
-              { class: ["font-semibold", "text-sm"] },
-              group.nom || "Groupe sans nom"
-            ),
-            createElement(
-              "div",
-              { class: ["text-xs", "text-gray-600"] },
-              `${group.membres?.length || 0} membres`
-            ),
-          ]),
-          createElement("div", {
-            class: [
-              "w-2",
-              "h-2",
-              "rounded-full",
-              group.status ? "bg-green-500" : "bg-gray-400",
-            ],
-          }),
         ]
       )
     )

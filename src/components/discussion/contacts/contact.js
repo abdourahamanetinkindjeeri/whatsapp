@@ -35,7 +35,7 @@ const createContactElement = (contact) => {
         "border-b",
         "border-gray-100",
       ],
-      "data-contact-id": contact.id, // Important pour highlightSelectedContact
+      "data-contact-id": contact.id, 
       onclick: (event) => handleContactClick(event, contact),
     },
     [
@@ -169,7 +169,7 @@ const handleContactClick = (event, contact) => {
       }
 
       // Appeler l'API de messagerie pour sélectionner le contact
-      messageAPI.selectContact(contactId, contactName);
+      messageAPI.selectContact(contactId, contactName, "contact");
 
       // Log pour debug
       const currentUser = messageAPI.getCurrentUserId

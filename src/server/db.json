@@ -108,6 +108,11 @@
           "userId": "4",
           "role": "admin",
           "dateAjout": "2024-01-16T11:00:00Z"
+        },
+        {
+          "userId": "1750005282969",
+          "role": "membre",
+          "dateAjout": "2025-06-16T20:25:12.279Z"
         }
       ],
       "admin": "1",
@@ -285,6 +290,142 @@
       "isSelfMessage": false,
       "read": true,
       "readAt": "2025-06-16T11:07:42.391Z"
+    },
+    {
+      "id": "msg_1750088690386_jz4fux",
+      "senderId": "1",
+      "recipientId": "1",
+      "content": "Je veux envoyer des messages dans le groupes",
+      "timestamp": "2025-06-16T15:44:50.386Z",
+      "status": "sent",
+      "type": "text",
+      "isSelfMessage": true,
+      "read": true,
+      "readAt": "2025-06-16T15:45:34.421Z",
+      "senderName": "Diop"
+    },
+    {
+      "0": {
+        "id": "msg_1750067832741_fb2jjy",
+        "senderId": "1",
+        "recipientId": "1750005282969",
+        "content": "Je ne suis pas encore bon",
+        "timestamp": "2025-06-16T09:57:12.741Z",
+        "status": "sent",
+        "type": "text",
+        "isSelfMessage": false
+      },
+      "1": {
+        "id": "msg_1750067916109_dpqeb8",
+        "senderId": "1",
+        "recipientId": "1750005282969",
+        "content": "Je suis bon",
+        "timestamp": "2025-06-16T09:58:36.109Z",
+        "status": "sent",
+        "type": "text",
+        "isSelfMessage": false
+      },
+      "2": {
+        "id": "msg_1750070232329_d4ae9v",
+        "senderId": "1",
+        "recipientId": "1750005282969",
+        "content": "je suis",
+        "timestamp": "2025-06-16T10:37:12.329Z",
+        "status": "sent",
+        "type": "text",
+        "isSelfMessage": false,
+        "read": true,
+        "readAt": "2025-06-16T10:45:00.580Z"
+      },
+      "3": {
+        "id": "msg_1750070435908_wod1lh",
+        "senderId": "1750005282969",
+        "recipientId": "1",
+        "content": "Je viens d'observer quelque changement mineur",
+        "timestamp": "2025-06-16T10:40:35.908Z",
+        "status": "sent",
+        "type": "text",
+        "isSelfMessage": false,
+        "read": true,
+        "readAt": "2025-06-16T10:44:07.348Z"
+      },
+      "4": {
+        "id": "msg_1750070674718_0r2gos",
+        "senderId": "1",
+        "recipientId": "1750005282969",
+        "content": "Je dois verifier si les messages lu sont bien edites",
+        "timestamp": "2025-06-16T10:44:34.718Z",
+        "status": "sent",
+        "type": "text",
+        "isSelfMessage": false,
+        "read": true,
+        "readAt": "2025-06-16T10:45:00.580Z"
+      },
+      "5": {
+        "id": "msg_1750071015301_ls7ibr",
+        "senderId": "1",
+        "recipientId": "1750005282969",
+        "content": "Je reteste l'envoi de",
+        "timestamp": "2025-06-16T10:50:15.301Z",
+        "status": "sent",
+        "type": "text",
+        "isSelfMessage": false,
+        "read": true,
+        "readAt": "2025-06-16T10:50:38.920Z"
+      },
+      "6": {
+        "id": "msg_1750072055766_c1fndi",
+        "senderId": "1750005282969",
+        "recipientId": "1",
+        "content": "Je te reponds pour voir la faisabilite de mon code",
+        "timestamp": "2025-06-16T11:07:35.767Z",
+        "status": "sent",
+        "type": "text",
+        "isSelfMessage": false,
+        "read": true,
+        "readAt": "2025-06-16T11:07:42.391Z"
+      },
+      "7": {
+        "id": "msg_1750088690386_jz4fux",
+        "senderId": "1",
+        "recipientId": "1",
+        "content": "Je veux envoyer des messages dans le groupes",
+        "timestamp": "2025-06-16T15:44:50.386Z",
+        "status": "sent",
+        "type": "text",
+        "isSelfMessage": true,
+        "read": true,
+        "readAt": "2025-06-16T15:45:34.421Z",
+        "senderName": "Diop"
+      },
+      "8": {
+        "id": "msg_1750094213224_w82pe2",
+        "senderId": "1",
+        "recipientId": "4",
+        "content": "jjj",
+        "timestamp": "2025-06-16T17:16:53.224Z",
+        "status": "sent",
+        "type": "text",
+        "isSelfMessage": false,
+        "groupId": "1",
+        "groupName": "Ndey Sunu Kër",
+        "senderName": "Mamadou Diop"
+      },
+      "id": "ebf2"
+    }
+  ],
+  "groupMessages": [
+    {
+      "id": "group_msg_1750094213183_axnj8h",
+      "groupId": "1",
+      "senderId": "1",
+      "senderName": "Mamadou Diop",
+      "content": "jjj",
+      "timestamp": "2025-06-16T17:16:53.183Z",
+      "type": "group",
+      "readBy": [
+        "1"
+      ]
     }
   ]
 }
