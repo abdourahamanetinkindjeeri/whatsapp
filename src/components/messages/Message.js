@@ -27,6 +27,11 @@ const sendMessage = async (idEnvoyeur, userSelection, msg) => {
   }
 
   try {
+    // Récupérer le nom de l'utilisateur
+    const users = (await readData("users")) || [];
+    const sender = users.find((u) => String(u.id) === String(idEnvoyeur));
+    const senderName = sender ? sender.nom || sender.name : "Utilisateur";
+
     const messageObj = {
       id: generateMessageId(),
       senderId: String(idEnvoyeur),
@@ -38,6 +43,7 @@ const sendMessage = async (idEnvoyeur, userSelection, msg) => {
       isSelfMessage: String(idEnvoyeur) === String(userSelection),
       read: false,
       readAt: null,
+      senderName: senderName,
     };
 
     const saved = await saveNewMessage(messageObj);
@@ -149,7 +155,7 @@ const markMessagesAsRead = async (senderId, recipientId) => {
   }
 };
 
-const displayMessage = (messageObj, isSentByMe = false) => {
+const displayMessage = async (messageObj, isSentByMe = false) => {
   const messagesContainer = document.getElementById("messagesContainer");
   if (!messagesContainer) {
     return;
@@ -159,10 +165,73 @@ const displayMessage = (messageObj, isSentByMe = false) => {
     messageObj.isSelfMessage ||
     String(messageObj.senderId) === String(messageObj.recipientId);
 
+  // Récupérer les informations du contact pour l'avatar
+  let contactInfo = null;
+  if (!isSentByMe) {
+    try {
+      const users = await readData("users");
+      contactInfo = users.find(
+        (u) => String(u.id) === String(messageObj.senderId)
+      );
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des informations du contact:",
+        error
+      );
+    }
+  }
+
   const messageElement = createElement(
     "div",
-    { class: ["flex", isSentByMe ? "justify-end" : "justify-start", "mb-3"] },
+    {
+      class: [
+        "flex",
+        isSentByMe ? "justify-end" : "justify-start",
+        "mb-3",
+        "items-end",
+        "gap-2",
+      ],
+    },
     [
+      ...(isSentByMe
+        ? []
+        : [
+            createElement(
+              "div",
+              {
+                class: [
+                  "w-8",
+                  "h-8",
+                  "rounded-full",
+                  "bg-gray-200",
+                  "flex",
+                  "items-center",
+                  "justify-center",
+                  "text-gray-600",
+                  "flex-shrink-0",
+                  "overflow-hidden",
+                ],
+              },
+              contactInfo?.profile?.avatar
+                ? createElement("img", {
+                    src: contactInfo.profile.avatar,
+                    alt:
+                      contactInfo.nom ||
+                      contactInfo.name ||
+                      `Contact ${contactInfo.id}`,
+                    class: ["w-full", "h-full", "object-cover"],
+                    onerror: (e) => {
+                      console.error("Erreur de chargement de l'avatar:", e);
+                      e.target.style.display = "none";
+                      e.target.parentElement.innerHTML =
+                        '<i class="fas fa-user text-gray-600 text-sm"></i>';
+                    },
+                  })
+                : createElement("i", {
+                    class: ["fas", "fa-user", "text-sm"],
+                  })
+            ),
+          ]),
       createElement(
         "div",
         {
@@ -205,6 +274,17 @@ const displayMessage = (messageObj, isSentByMe = false) => {
                 ),
               ]
             : []),
+          ...(isSentByMe
+            ? []
+            : [
+                createElement(
+                  "div",
+                  {
+                    class: ["text-xs", "font-medium", "mb-1", "text-gray-600"],
+                  },
+                  messageObj.senderName || "Utilisateur"
+                ),
+              ]),
           createElement(
             "p",
             { class: ["text-sm", "break-words"] },
@@ -242,6 +322,31 @@ const displayMessage = (messageObj, isSentByMe = false) => {
           ),
         ]
       ),
+      ...(isSentByMe
+        ? [
+            createElement(
+              "div",
+              {
+                class: [
+                  "w-8",
+                  "h-8",
+                  "rounded-full",
+                  "bg-blue-100",
+                  "flex",
+                  "items-center",
+                  "justify-center",
+                  "text-blue-600",
+                  "flex-shrink-0",
+                ],
+              },
+              [
+                createElement("i", {
+                  class: ["fas", "fa-user", "text-sm"],
+                }),
+              ]
+            ),
+          ]
+        : []),
     ]
   );
 
@@ -271,10 +376,20 @@ const loadConversation = async (recipientId) => {
 
   try {
     const messages = await getMessages(currentUserId, recipientId);
+    const users = (await readData("users")) || [];
+
+    // Ajouter les noms des utilisateurs aux messages
+    const messagesWithNames = messages.map((msg) => {
+      const sender = users.find((u) => String(u.id) === String(msg.senderId));
+      return {
+        ...msg,
+        senderName: sender ? sender.nom || sender.name : "Utilisateur",
+      };
+    });
 
     messagesContainer.innerHTML = "";
 
-    if (messages.length === 0) {
+    if (messagesWithNames.length === 0) {
       messagesContainer.appendChild(
         createElement(
           "div",
@@ -290,7 +405,7 @@ const loadConversation = async (recipientId) => {
         )
       );
     } else {
-      messages.forEach((msg) =>
+      messagesWithNames.forEach((msg) =>
         displayMessage(msg, String(msg.senderId) === String(currentUserId))
       );
       messagesContainer.scrollTop = messagesContainer.scrollHeight;

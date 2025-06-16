@@ -6,7 +6,12 @@
       "nom": "Diop",
       "telephone": "771001010",
       "delete": false,
-      "archive": false
+      "archive": false,
+      "profile": {
+        "avatar": "https://www.manga-news.com/public/images/series/Boruto_-_Two_Blue_Vortex_-_Tome_1_Kana.webp",
+        "status": "Protecteur de la paix",
+        "bio": "Membre du clan Uchiha, ANBU"
+      }
     },
     {
       "id": "2",
@@ -14,7 +19,12 @@
       "nom": "Sall",
       "telephone": "775234567",
       "delete": false,
-      "archive": true
+      "archive": true,
+      "profile": {
+        "avatar": "https://i.pinimg.com/originals/3c/1c/0c/3c1c0c0c0c0c0c0c0c0c0c0c0c0c0c0c.jpg",
+        "status": "Ninja médical",
+        "bio": "Membre de l'équipe 7, spécialiste en ninjutsu médical"
+      }
     },
     {
       "id": "3",
@@ -22,7 +32,12 @@
       "nom": "Ndiaye",
       "telephone": "773456789",
       "delete": true,
-      "archive": false
+      "archive": false,
+      "profile": {
+        "avatar": "https://i.pinimg.com/originals/4c/1c/0c/4c1c0c0c0c0c0c0c0c0c0c0c0c0c0c0c.jpg",
+        "status": "Le dernier Uchiha",
+        "bio": "Membre de l'équipe 7, porteur du Sharingan"
+      }
     },
     {
       "id": "4",
@@ -30,7 +45,12 @@
       "nom": "Kane",
       "telephone": "776789012",
       "delete": false,
-      "archive": false
+      "archive": false,
+      "profile": {
+        "avatar": "https://i.ytimg.com/vi/WgBSNTBBFmI/maxresdefault.jpg",
+        "status": "Héritière du clan Hyuga",
+        "bio": "Spécialiste du Byakugan"
+      }
     },
     {
       "id": "5",
@@ -38,7 +58,12 @@
       "nom": "Sy",
       "telephone": "777890123",
       "delete": false,
-      "archive": false
+      "archive": false,
+      "profile": {
+        "avatar": "https://i.pinimg.com/originals/6c/1c/0c/6c1c0c0c0c0c0c0c0c0c0c0c0c0c0c0c.jpg",
+        "status": "Le ninja copieur",
+        "bio": "Jônin, ancien ANBU, sensei de l'équipe 7"
+      }
     },
     {
       "id": "6",
@@ -46,7 +71,12 @@
       "nom": "Fall",
       "telephone": "778901234",
       "delete": false,
-      "archive": true
+      "archive": true,
+      "profile": {
+        "avatar": "https://i.pinimg.com/originals/7c/1c/0c/7c1c0c0c0c0c0c0c0c0c0c0c0c0c0c0c.jpg",
+        "status": "La princesse limace",
+        "bio": "Cinquième Hokage, légendaire ninja médical"
+      }
     },
     {
       "id": "1750005282969",
@@ -55,7 +85,12 @@
       "status": false,
       "archive": false,
       "delete": false,
-      "telephone": "772707050"
+      "telephone": "772707050",
+      "profile": {
+        "avatar": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRr6Y3YN10YbpFYKsUCnpmTVG1yOmQYVOXvRtRImhUn6iXGhPVPxe3qivxIuDjNb5-bT00RxEGprPPq4OvdgudM5fYcmjP4rduUrSQldQ",
+        "status": "Le ninja le plus imprévisible",
+        "bio": "Hôte du Kyûbi, futur Hokage"
+      }
     }
   ],
   "groups": [
@@ -172,43 +207,24 @@
   ],
   "messages": [
     {
-      "0": {
-        "id": "msg_1750067832741_fb2jjy",
-        "senderId": "1",
-        "recipientId": "1750005282969",
-        "content": "Je ne suis pas encore bon",
-        "timestamp": "2025-06-16T09:57:12.741Z",
-        "status": "sent",
-        "type": "text",
-        "isSelfMessage": false
-      },
-      "id": "2429"
+      "id": "msg_1750067832741_fb2jjy",
+      "senderId": "1",
+      "recipientId": "1750005282969",
+      "content": "Je ne suis pas encore bon",
+      "timestamp": "2025-06-16T09:57:12.741Z",
+      "status": "sent",
+      "type": "text",
+      "isSelfMessage": false
     },
     {
-      "0": {
-        "0": {
-          "id": "msg_1750067832741_fb2jjy",
-          "senderId": "1",
-          "recipientId": "1750005282969",
-          "content": "Je ne suis pas encore bon",
-          "timestamp": "2025-06-16T09:57:12.741Z",
-          "status": "sent",
-          "type": "text",
-          "isSelfMessage": false
-        },
-        "id": "2429"
-      },
-      "1": {
-        "id": "msg_1750067916109_dpqeb8",
-        "senderId": "1",
-        "recipientId": "1750005282969",
-        "content": "Je suis bon",
-        "timestamp": "2025-06-16T09:58:36.109Z",
-        "status": "sent",
-        "type": "text",
-        "isSelfMessage": false
-      },
-      "id": "00df"
+      "id": "msg_1750067916109_dpqeb8",
+      "senderId": "1",
+      "recipientId": "1750005282969",
+      "content": "Je suis bon",
+      "timestamp": "2025-06-16T09:58:36.109Z",
+      "status": "sent",
+      "type": "text",
+      "isSelfMessage": false
     },
     {
       "id": "msg_1750070232329_d4ae9v",

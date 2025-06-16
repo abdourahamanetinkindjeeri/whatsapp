@@ -21,6 +21,8 @@ let currentlySelectedContactElement = null;
 
 // Fonction pour créer un élément de contact avec gestion du clic
 const createContactElement = (contact) => {
+  console.log("Contact data:", contact); // Log pour voir les données du contact
+
   return createElement(
     "div",
     {
@@ -56,13 +58,24 @@ const createContactElement = (contact) => {
                 "items-center",
                 "justify-center",
                 "flex-shrink-0",
+                "overflow-hidden",
               ],
             },
-            [
-              createElement("i", {
-                class: ["fas", "fa-user", "text-gray-600", "text-sm"],
-              }),
-            ]
+            contact.profile && contact.profile.avatar
+              ? createElement("img", {
+                  src: contact.profile.avatar,
+                  alt: contact.nom || contact.name || `Contact ${contact.id}`,
+                  class: ["w-full", "h-full", "object-cover"],
+                  onerror: (e) => {
+                    console.error("Erreur de chargement de l'avatar:", e);
+                    e.target.style.display = "none";
+                    e.target.parentElement.innerHTML =
+                      '<i class="fas fa-user text-gray-600 text-sm"></i>';
+                  },
+                })
+              : createElement("i", {
+                  class: ["fas", "fa-user", "text-gray-600", "text-sm"],
+                })
           ),
 
           // Informations du contact
@@ -240,16 +253,13 @@ const updateContactList = async () => {
   console.log("🔄 Mise à jour de la liste des contacts...");
 
   try {
-    // Attendre la résolution de la promesse
-    const data = await readData();
     const usersData = await readData("users");
-
-    console.clear();
-    console.table(usersData); // Afficher les données une fois résolues
+    console.log("Données utilisateurs reçues:", usersData); // Log des données utilisateurs
 
     const contacts = (usersData || []).filter(
       (contact) => contact.delete === false && contact.archive === false
     );
+    console.log("Contacts filtrés:", contacts); // Log des contacts filtrés
 
     const contactListPanel = document.getElementById("discussionList");
     if (!contactListPanel) {
