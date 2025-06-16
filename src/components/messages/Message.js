@@ -444,11 +444,17 @@ const updateChatHeader = (contact, type) => {
       ? `${contact.membres?.length || 0} membres`
       : contact.profile?.status || "Pas de statut";
 
+  // Vérifier si une photo de profil existe
+  const hasProfilePicture = contact.profile?.avatar || contact.avatar;
+  const avatarContent = hasProfilePicture
+    ? `<img src="${hasProfilePicture}" alt="${name}" class="w-10 h-10 rounded-full object-cover">`
+    : `<div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white">
+         <i class="fas ${icon}"></i>
+       </div>`;
+
   header.innerHTML = `
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white">
-        <i class="fas ${icon}"></i>
-      </div>
+      ${avatarContent}
       <div class="flex-1">
         <div class="font-medium">${name}</div>
         <div class="text-sm text-gray-500">${status}</div>
