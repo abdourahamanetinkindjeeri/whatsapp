@@ -586,8 +586,8 @@ export const updateGroupsList = async () => {
           onclick: async () => {
             // Importer selectContact dynamiquement
             const { selectContact } = await import("../../messages/Message.js");
-            console.log("Selecting group:", group.id, group.nomGroup);
-            await selectContact(group.id, group.nomGroup, "group");
+            console.log("Selecting group:", group.id, group.nom);
+            await selectContact(group.id, group.nom, "group");
           },
         },
         [
@@ -626,7 +626,7 @@ export const updateGroupsList = async () => {
                     {
                       class: ["font-medium"],
                     },
-                    group.nomGroup || "Groupe sans nom"
+                    group.nom || "Groupe sans nom"
                   ),
                   createElement(
                     "div",

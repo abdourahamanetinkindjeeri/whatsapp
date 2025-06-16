@@ -423,58 +423,38 @@ const loadConversation = async (recipientId) => {
   }
 };
 
-const updateChatHeader = (info, type = "contact") => {
+const updateChatHeader = (contact, type) => {
   console.log("=== updateChatHeader ===");
+  console.log("Contact:", contact);
   console.log("Type:", type);
-  console.log("Info:", info);
 
-  const headerElement = document.getElementById("chatHeaderName");
-  const statusElement = document.getElementById("chatHeaderStatus");
-
-  console.log("Header Element:", headerElement);
-  console.log("Status Element:", statusElement);
-
-  if (!headerElement) {
-    console.error("Header element not found!");
+  const header = document.getElementById("chatHeader");
+  if (!header) {
+    console.error("Header element not found");
     return;
   }
 
-  // Réinitialiser le contenu
-  console.log("Resetting content...");
-  headerElement.innerHTML = "";
-  if (statusElement) statusElement.innerHTML = "";
+  const icon = type === "group" ? "fa-users" : "fa-user";
+  const name =
+    type === "group"
+      ? contact.nom
+      : `${contact.prenom || ""} ${contact.nom || ""}`.trim();
+  const status =
+    type === "group"
+      ? `${contact.membres?.length || 0} membres`
+      : contact.profile?.status || "Pas de statut";
 
-  if (type === "group") {
-    console.log("Updating for group...");
-    // Style pour les groupes
-    const groupContent = `<i class='fas fa-users text-blue-600 text-lg' style='margin-right:8px;'></i> ${
-      info.nom || "Groupe sans nom"
-    }`;
-    console.log("Group content:", groupContent);
-    headerElement.innerHTML = groupContent;
-
-    if (statusElement) {
-      const memberCount = `${info.membres?.length || 0} membres`;
-      console.log("Member count:", memberCount);
-      statusElement.textContent = memberCount;
-    }
-  } else {
-    console.log("Updating for contact...");
-    // Style pour les contacts
-    const contactContent = `<i class='fas fa-user text-blue-600 text-lg' style='margin-right:8px;'></i> ${
-      info.nom || info.name || "Contact"
-    }`;
-    console.log("Contact content:", contactContent);
-    headerElement.innerHTML = contactContent;
-
-    if (statusElement) {
-      const status = info.status || "En ligne";
-      console.log("Status:", status);
-      statusElement.textContent = status;
-    }
-  }
-
-  console.log("=== End updateChatHeader ===");
+  header.innerHTML = `
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white">
+        <i class="fas ${icon}"></i>
+      </div>
+      <div class="flex-1">
+        <div class="font-medium">${name}</div>
+        <div class="text-sm text-gray-500">${status}</div>
+      </div>
+    </div>
+  `;
 };
 
 const selectContact = async (contactId, contactName, type) => {
@@ -959,25 +939,25 @@ const createMessage = () => {
                   class: ["flex", "items-center", "gap-3"],
                 },
                 [
-                  createElement(
-                    "div",
-                    {
-                      class: [
-                        "w-10",
-                        "h-10",
-                        "rounded-full",
-                        "bg-blue-100",
-                        "flex",
-                        "items-center",
-                        "justify-center",
-                      ],
-                    },
-                    [
-                      createElement("i", {
-                        class: ["fas", "fa-user", "text-blue-600", "text-lg"],
-                      }),
-                    ]
-                  ),
+                  // createElement(
+                  //   "div",
+                  //   {
+                  //     class: [
+                  //       "w-10",
+                  //       "h-10",
+                  //       "rounded-full",
+                  //       "bg-blue-100",
+                  //       "flex",
+                  //       "items-center",
+                  //       "justify-center",
+                  //     ],
+                  //   },
+                  //   [
+                  //     createElement("i", {
+                  //       class: ["fas", "fa-user", "text-blue-600", "text-lg"],
+                  //     }),
+                  //   ]
+                  // ),
                   createElement(
                     "div",
                     {
