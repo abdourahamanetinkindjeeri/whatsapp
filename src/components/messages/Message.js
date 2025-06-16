@@ -2,7 +2,7 @@ import {
   updateContactList,
   updateContactListArchive,
 } from "../discussion/contacts/contact.js";
-import { readData, addData, deleteData } from "../../utils/data.js";
+import { readData, addData, deleteData, patchData } from "../../utils/data.js";
 import {
   getSelectedContacts,
   resetSelectedContacts,
@@ -17,20 +17,13 @@ let currentlySelectedContactElement = null;
 // ===== FONCTIONS PRINCIPALES =====
 
 const sendMessage = async (idEnvoyeur, userSelection, msg) => {
-  console.log("📤 Envoi de message...");
-  console.log(`👤 Envoyeur: ${idEnvoyeur}`);
-  console.log(`🎯 Destinataire: ${userSelection}`);
-  console.log(`💬 Message: "${msg}"`);
-
   if (!idEnvoyeur || !userSelection || !msg?.trim()) {
     const error = "Données manquantes pour l'envoi";
-    console.error("❌", error);
     return { success: false, error };
   }
 
   if (String(idEnvoyeur) === String(userSelection)) {
-    console.warn("⚠️ Tentative d'envoi de message à soi-même");
-    console.log("💭 Message à soi-même autorisé (note personnelle)");
+    // Message à soi-même autorisé (note personnelle)
   }
 
   try {
@@ -43,11 +36,12 @@ const sendMessage = async (idEnvoyeur, userSelection, msg) => {
       status: "sent",
       type: "text",
       isSelfMessage: String(idEnvoyeur) === String(userSelection),
+      read: false,
+      readAt: null,
     };
 
     const saved = await saveNewMessage(messageObj);
     if (saved) {
-      console.log("✅ Message envoyé avec succès !");
       window.dispatchEvent(
         new CustomEvent("messageSent", { detail: messageObj })
       );
@@ -56,7 +50,6 @@ const sendMessage = async (idEnvoyeur, userSelection, msg) => {
       throw new Error("Échec de la sauvegarde");
     }
   } catch (error) {
-    console.error("❌ Erreur lors de l'envoi:", error);
     return { success: false, error: error.message };
   }
 };
@@ -64,10 +57,8 @@ const sendMessage = async (idEnvoyeur, userSelection, msg) => {
 const saveNewMessage = async (messageObj) => {
   try {
     await addData("messages", messageObj);
-    console.log("💾 Message sauvegardé");
     return true;
   } catch (error) {
-    console.error("❌ Erreur de sauvegarde:", error);
     return false;
   }
 };
@@ -78,7 +69,6 @@ const generateMessageId = () => {
 
 const getCurrentUserId = () => {
   if (!authManager.isAuthenticated()) {
-    console.warn("Utilisateur non authentifié. Retourne null.");
     return null;
   }
   const userContact = authManager.getCurrentUserContact();
@@ -97,7 +87,6 @@ const getAvailableContacts = async () => {
         name: contact.nom || contact.name,
       }));
   } catch (error) {
-    console.error("❌ Erreur récupération contacts:", error);
     return [];
   }
 };
@@ -120,15 +109,49 @@ const getMessages = async (userId1, userId2) => {
       )
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   } catch (error) {
-    console.error("❌ Erreur récupération messages:", error);
     return [];
+  }
+};
+
+const markMessagesAsRead = async (senderId, recipientId) => {
+  try {
+    const messages = await getMessages(senderId, recipientId);
+    const unreadMessages = messages.filter(
+      (msg) =>
+        String(msg.senderId) === String(senderId) &&
+        String(msg.recipientId) === String(recipientId) &&
+        !msg.read
+    );
+
+    if (unreadMessages.length > 0) {
+      const now = new Date().toISOString();
+      await Promise.all(
+        unreadMessages.map((msg) =>
+          patchData("messages", msg.id, {
+            read: true,
+            readAt: now,
+          })
+        )
+      );
+
+      window.dispatchEvent(
+        new CustomEvent("messagesRead", {
+          detail: {
+            senderId,
+            recipientId,
+            timestamp: now,
+          },
+        })
+      );
+    }
+  } catch (error) {
+    // Error handling
   }
 };
 
 const displayMessage = (messageObj, isSentByMe = false) => {
   const messagesContainer = document.getElementById("messagesContainer");
   if (!messagesContainer) {
-    console.error("❌ messagesContainer non trouvé");
     return;
   }
 
@@ -188,19 +211,34 @@ const displayMessage = (messageObj, isSentByMe = false) => {
             messageObj.content
           ),
           createElement(
-            "p",
+            "div",
             {
-              class: [
-                "text-xs",
-                "mt-1",
-                "opacity-70",
-                isSentByMe ? "text-right" : "text-left",
-              ],
+              class: ["flex", "items-center", "justify-end", "gap-1", "mt-1"],
             },
-            new Date(messageObj.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+            [
+              createElement(
+                "p",
+                {
+                  class: ["text-xs", "opacity-70"],
+                },
+                new Date(messageObj.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              ),
+              ...(isSentByMe && !isSelfMessage
+                ? [
+                    createElement("i", {
+                      class: [
+                        "fas",
+                        messageObj.read ? "fa-check-double" : "fa-check",
+                        messageObj.read ? "text-blue-300" : "text-gray-400",
+                        "text-xs",
+                      ],
+                    }),
+                  ]
+                : []),
+            ]
           ),
         ]
       ),
@@ -214,19 +252,13 @@ const displayMessage = (messageObj, isSentByMe = false) => {
 const loadConversation = async (recipientId) => {
   const messagesContainer = document.getElementById("messagesContainer");
   if (!messagesContainer) {
-    console.error("❌ messagesContainer non trouvé");
     return;
   }
 
   const currentUserId = getCurrentUserId();
   if (!currentUserId) {
-    console.error("❌ Utilisateur non défini.");
     return;
   }
-
-  console.log(
-    `🔍 Chargement de la conversation entre ${currentUserId} et ${recipientId}`
-  );
 
   messagesContainer.innerHTML = `
     <div class="flex justify-center items-center h-full">
@@ -264,10 +296,10 @@ const loadConversation = async (recipientId) => {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
+    await markMessagesAsRead(recipientId, currentUserId);
+
     currentRecipient = recipientId;
-    console.log(`💬 Conversation chargée avec: ${recipientId}`);
   } catch (error) {
-    console.error("❌ Erreur lors du chargement des messages:", error);
     messagesContainer.innerHTML = `
       <div class="text-center text-red-500 mt-8">
         <p>❌ Erreur lors du chargement des messages</p>
@@ -278,8 +310,6 @@ const loadConversation = async (recipientId) => {
 };
 
 const selectContact = async (contactId, contactName) => {
-  console.log(`👤 Contact sélectionné: ${contactName} (${contactId})`);
-
   const normalizedContactId = String(contactId);
   currentRecipient = normalizedContactId;
 
@@ -306,10 +336,6 @@ const selectContact = async (contactId, contactName) => {
       },
     })
   );
-
-  console.log(
-    `✅ Contact ${contactName} sélectionné avec succès pour la messagerie`
-  );
 };
 
 const handleSecureMessageSend = () => {
@@ -321,7 +347,6 @@ const _performSendMessage = async () => {
   const message = messageInput?.value?.trim();
 
   if (!message) {
-    console.warn("⚠️ Message vide.");
     if (messageInput) {
       messageInput.style.backgroundColor = "#fef2f2";
       messageInput.placeholder = "Veuillez écrire un message...";
@@ -334,7 +359,6 @@ const _performSendMessage = async () => {
   }
 
   if (!currentRecipient) {
-    console.warn("⚠️ Aucun destinataire sélectionné.");
     if (messageInput) {
       messageInput.style.backgroundColor = "#fef3cd";
       messageInput.placeholder = "Sélectionnez un contact...";
@@ -349,11 +373,9 @@ const _performSendMessage = async () => {
 
   const currentUserId = getCurrentUserId();
   if (!currentUserId) {
-    console.error("❌ Utilisateur non défini.");
     return;
   }
 
-  console.log(`📤 Envoi du message vers ${currentRecipient}: "${message}"`);
   const result = await sendMessage(currentUserId, currentRecipient, message);
 
   if (result.success) {
@@ -362,9 +384,7 @@ const _performSendMessage = async () => {
     setTimeout(() => {
       messageInput.style.backgroundColor = "#f9fafb";
     }, 1000);
-    console.log("✅ Message envoyé avec succès !");
   } else {
-    console.error("❌ Échec envoi:", result.error);
     messageInput.style.backgroundColor = "#fef2f2";
     setTimeout(() => {
       messageInput.style.backgroundColor = "#f9fafb";
@@ -376,7 +396,6 @@ const showContactSelector = async () => {
   const contacts = await getAvailableContacts();
 
   if (contacts.length === 0) {
-    console.warn("⚠️ Aucun contact disponible.");
     alert("Aucun contact disponible pour commencer une conversation.");
     return;
   }
@@ -886,43 +905,25 @@ export const messageAPI = {
   isRecipientSelected: () => Boolean(currentRecipient),
   clearRecipient: () => {
     currentRecipient = null;
-    console.log("🔄 Destinataire effacé");
   },
   debugAllMessages: async () => {
     try {
       const messages = (await readData("messages")) || [];
-      console.group("📧 TOUS LES MESSAGES SAUVEGARDÉS");
-      console.log(`📊 Total: ${messages.length} messages`);
-      messages
-        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-        .forEach((msg, index) => {
-          const time = new Date(msg.timestamp).toLocaleString();
-          const selfMsg = msg.isSelfMessage ? " (Note personnelle)" : "";
-          console.log(
-            `${index + 1}. [${time}] ${msg.senderId} → ${msg.recipientId}: "${
-              msg.content
-            }"${selfMsg}`
-          );
-        });
-      console.groupEnd();
       return messages;
     } catch (error) {
-      console.error("❌ Erreur debug messages:", error);
       return [];
     }
   },
   debugCurrentState: () => {
-    console.group("🔍 ÉTAT ACTUEL DE LA MESSAGERIE");
-    console.log("Utilisateur actuel:", getCurrentUserId());
-    console.log("Destinataire sélectionné:", currentRecipient);
-    console.groupEnd();
+    return {
+      currentUser: getCurrentUserId(),
+      currentRecipient: currentRecipient,
+    };
   },
   clearAllMessages: async () => {
     try {
-      console.log("🗑️ Suppression de tous les messages...");
       const messages = (await readData("messages")) || [];
       await Promise.all(messages.map((msg) => deleteData("messages", msg.id)));
-      console.log("✅ Tous les messages ont été supprimés");
       const messagesContainer = document.getElementById("messagesContainer");
       if (messagesContainer) {
         messagesContainer.innerHTML = "";
@@ -942,13 +943,23 @@ export const messageAPI = {
         );
       }
     } catch (error) {
-      console.error("❌ Erreur suppression messages:", error);
+      // Error handling
     }
   },
   testGetMessages: async (userId1, userId2) => {
     const messages = await getMessages(userId1, userId2);
-    console.table(messages);
     return messages;
+  },
+  markMessagesAsRead,
+  getUnreadCount: async (userId) => {
+    try {
+      const messages = (await readData("messages")) || [];
+      return messages.filter(
+        (msg) => String(msg.recipientId) === String(userId) && !msg.read
+      ).length;
+    } catch (error) {
+      return 0;
+    }
   },
 };
 
@@ -968,12 +979,7 @@ export {
   renderContactListInPanel,
 };
 export const testContactSelection = (contactId, contactName) => {
-  console.log("🧪 Test de sélection de contact...");
   selectContact(contactId, contactName);
-  setTimeout(() => {
-    console.log("📊 État après sélection:");
-    messageAPI.debugCurrentState();
-  }, 100);
 };
 if (typeof window !== "undefined") {
   window.messageAPI = messageAPI;

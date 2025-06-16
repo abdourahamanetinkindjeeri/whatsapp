@@ -218,7 +218,57 @@
       "timestamp": "2025-06-16T10:37:12.329Z",
       "status": "sent",
       "type": "text",
-      "isSelfMessage": false
+      "isSelfMessage": false,
+      "read": true,
+      "readAt": "2025-06-16T10:45:00.580Z"
+    },
+    {
+      "id": "msg_1750070435908_wod1lh",
+      "senderId": "1750005282969",
+      "recipientId": "1",
+      "content": "Je viens d'observer quelque changement mineur",
+      "timestamp": "2025-06-16T10:40:35.908Z",
+      "status": "sent",
+      "type": "text",
+      "isSelfMessage": false,
+      "read": true,
+      "readAt": "2025-06-16T10:44:07.348Z"
+    },
+    {
+      "id": "msg_1750070674718_0r2gos",
+      "senderId": "1",
+      "recipientId": "1750005282969",
+      "content": "Je dois verifier si les messages lu sont bien edites",
+      "timestamp": "2025-06-16T10:44:34.718Z",
+      "status": "sent",
+      "type": "text",
+      "isSelfMessage": false,
+      "read": true,
+      "readAt": "2025-06-16T10:45:00.580Z"
+    },
+    {
+      "id": "msg_1750071015301_ls7ibr",
+      "senderId": "1",
+      "recipientId": "1750005282969",
+      "content": "Je reteste l'envoi de",
+      "timestamp": "2025-06-16T10:50:15.301Z",
+      "status": "sent",
+      "type": "text",
+      "isSelfMessage": false,
+      "read": true,
+      "readAt": "2025-06-16T10:50:38.920Z"
+    },
+    {
+      "id": "msg_1750072055766_c1fndi",
+      "senderId": "1750005282969",
+      "recipientId": "1",
+      "content": "Je te reponds pour voir la faisabilite de mon code",
+      "timestamp": "2025-06-16T11:07:35.767Z",
+      "status": "sent",
+      "type": "text",
+      "isSelfMessage": false,
+      "read": true,
+      "readAt": "2025-06-16T11:07:42.391Z"
     }
   ]
 }
