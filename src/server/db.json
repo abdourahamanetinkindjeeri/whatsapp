@@ -49,7 +49,7 @@
       "archive": true
     },
     {
-      "id": 1750005282969,
+      "id": "1750005282969",
       "nom": "Diallo",
       "prenom": "Abdoul",
       "status": false,
@@ -168,6 +168,57 @@
       "dateCreation": "2024-01-10T08:00:00Z",
       "archive": false,
       "delete": false
+    }
+  ],
+  "messages": [
+    {
+      "0": {
+        "id": "msg_1750067832741_fb2jjy",
+        "senderId": "1",
+        "recipientId": "1750005282969",
+        "content": "Je ne suis pas encore bon",
+        "timestamp": "2025-06-16T09:57:12.741Z",
+        "status": "sent",
+        "type": "text",
+        "isSelfMessage": false
+      },
+      "id": "2429"
+    },
+    {
+      "0": {
+        "0": {
+          "id": "msg_1750067832741_fb2jjy",
+          "senderId": "1",
+          "recipientId": "1750005282969",
+          "content": "Je ne suis pas encore bon",
+          "timestamp": "2025-06-16T09:57:12.741Z",
+          "status": "sent",
+          "type": "text",
+          "isSelfMessage": false
+        },
+        "id": "2429"
+      },
+      "1": {
+        "id": "msg_1750067916109_dpqeb8",
+        "senderId": "1",
+        "recipientId": "1750005282969",
+        "content": "Je suis bon",
+        "timestamp": "2025-06-16T09:58:36.109Z",
+        "status": "sent",
+        "type": "text",
+        "isSelfMessage": false
+      },
+      "id": "00df"
+    },
+    {
+      "id": "msg_1750070232329_d4ae9v",
+      "senderId": "1",
+      "recipientId": "1750005282969",
+      "content": "je suis",
+      "timestamp": "2025-06-16T10:37:12.329Z",
+      "status": "sent",
+      "type": "text",
+      "isSelfMessage": false
     }
   ]
 }

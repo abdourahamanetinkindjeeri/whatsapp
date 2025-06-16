@@ -7,7 +7,7 @@ const createSidebar = (updateContactList, updateGroupsList) => {
       class: ["flex", "flex-col", "gap-y-10", "items-center"],
     },
     [
-      createButton("fa-message", "Message", () => alert("Message")),
+      createButton("fa-message", "Message", () => console.log("Message")),
       createButton("fa-user-group", "Groupes", () => updateGroupsList()),
       createButton(
         "fa-user-group",

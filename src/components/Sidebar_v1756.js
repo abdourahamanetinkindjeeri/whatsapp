@@ -7,7 +7,7 @@
 //       class: ["flex", "flex-col", "gap-y-10", "items-center"],
 //     },
 //     [
-//       createButton("fa-message", "Message", () => alert("Message")),
+//       createButton("fa-message", "Message", () => console.log("Message")),
 //       createButton("fa-user-group", "Groupes", () => updateGroupsList()),
 //       createButton(
 //         "fa-user-group",
@@ -323,9 +323,9 @@ const createSidebar = (updateContactList, updateGroupsList) => {
       class: ["flex", "flex-col", "items-center", "gap-y-2", "py-4"],
     },
     [
-      createButton("fa-circle-user", () => alert("Profil")),
-      createButton("fa-eye", () => alert("Statut")),
-      createButton("fa-gear", () => alert("Paramètres")),
+      createButton("fa-circle-user", () => console.log("Profil")),
+      createButton("fa-eye", () => console.log("Statut")),
+      createButton("fa-gear", () => console.log("Paramètres")),
     ]
   );
 

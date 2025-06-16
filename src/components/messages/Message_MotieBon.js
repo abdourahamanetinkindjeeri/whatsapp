@@ -2,7 +2,7 @@ import {
   updateContactList,
   updateContactListArchive,
 } from "../discussion/contacts/contact.js";
-import { readData, addData, deleteData } from "../../utils/data.js";
+import { readData, addData } from "../../utils/data.js";
 import {
   getSelectedContacts,
   resetSelectedContacts,
@@ -63,7 +63,9 @@ const sendMessage = async (idEnvoyeur, userSelection, msg) => {
 
 const saveNewMessage = async (messageObj) => {
   try {
-    await addData("messages", messageObj);
+    const messages = (await readData("messages")) || [];
+    messages.push(messageObj);
+    await addData("messages", messages);
     console.log("💾 Message sauvegardé");
     return true;
   } catch (error) {
@@ -920,8 +922,7 @@ export const messageAPI = {
   clearAllMessages: async () => {
     try {
       console.log("🗑️ Suppression de tous les messages...");
-      const messages = (await readData("messages")) || [];
-      await Promise.all(messages.map((msg) => deleteData("messages", msg.id)));
+      await addData("messages", []);
       console.log("✅ Tous les messages ont été supprimés");
       const messagesContainer = document.getElementById("messagesContainer");
       if (messagesContainer) {

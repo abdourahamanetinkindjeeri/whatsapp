@@ -10,7 +10,7 @@ import { addData, readData } from "./utils/data.js";
 //     const form = document.getElementById("registerForm");
 //     if (!form) {
 //       console.error("Formulaire registerForm non trouvé.");
-//       alert("Erreur : Formulaire de contact non disponible.");
+//       console.log("Erreur : Formulaire de contact non disponible.");
 //       return;
 //     }
 
@@ -33,7 +33,7 @@ import { addData, readData } from "./utils/data.js";
 //     const prenomInput = document.getElementById("prenom");
 //     if (!prenomInput) {
 //       console.error("Champ Prénom non trouvé.");
-//       alert("Erreur : Champ Prénom manquant dans le formulaire.");
+//       console.log("Erreur : Champ Prénom manquant dans le formulaire.");
 //       return;
 //     }
 //     const prenom = prenomInput.value;
@@ -100,7 +100,7 @@ import { addData, readData } from "./utils/data.js";
 //     }
 //   } catch (error) {
 //     console.error("Erreur dans validateForm :", error);
-//     alert("Erreur lors de l’ajout du contact : " + error.message);
+//     console.log("Erreur lors de l’ajout du contact : " + error.message);
 //   }
 // };
 
@@ -115,7 +115,7 @@ const validateForm = async (updateDiscussionList) => {
     const form = document.getElementById("registerForm");
     if (!form) {
       console.error("Formulaire registerForm non trouvé.");
-      // alert("Erreur : Formulaire de contact non disponible.");
+      // console.log("Erreur : Formulaire de contact non disponible.");
       return;
     }
 
@@ -203,7 +203,7 @@ const validateForm = async (updateDiscussionList) => {
     }
   } catch (error) {
     console.error("Erreur dans validateForm :", error);
-    alert(
+    console.log(
       "Erreur lors de l’ajout du contact : " +
         (error.message || "Problème inconnu")
     );
@@ -226,7 +226,7 @@ const validateGroupForm = async (updateDiscussionList) => {
     const nomGroupInput = document.getElementById("nomGroup");
     if (!nomGroupInput) {
       console.error("Champ Nom du groupe non trouvé.");
-      alert("Erreur : Champ Nom du groupe manquant.");
+      console.log("Erreur : Champ Nom du groupe manquant.");
       return;
     }
     const nomGroup = nomGroupInput.value;
@@ -279,7 +279,7 @@ const validateGroupForm = async (updateDiscussionList) => {
     }
   } catch (error) {
     console.error("Erreur dans validateGroupForm :", error);
-    alert("Erreur lors de la création du groupe : " + error.message);
+    console.log("Erreur lors de la création du groupe : " + error.message);
   }
 };
 
@@ -302,7 +302,7 @@ const testAddData = async () => {
       delete: false,
     };
 
-    alert("Contact ajouté avec succès !", testContact);
+    console.log("Contact ajouté avec succès !", testContact);
 
     addData("users", testContact);
     console.log("Contact ajouté avec succès !", testContact);
@@ -338,11 +338,11 @@ const testContact = {
   delete: false,
 };
 
-const key = "users";
-const existing = JSON.parse(localStorage.getItem(key)) || [];
-existing.push(testContact);
-localStorage.setItem(key, JSON.stringify(existing));
-console.log("Contact ajouté :", testContact);
+// const key = "users";
+// const existing = JSON.parse(localStorage.getItem(key)) || [];
+// existing.push(testContact);
+// localStorage.setItem(key, JSON.stringify(existing));
+// console.log("Contact ajouté :", testContact);
 
 export {
   validateForm,

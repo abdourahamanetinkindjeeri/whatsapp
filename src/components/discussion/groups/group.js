@@ -284,7 +284,7 @@ export const updateGroupsList = async () => {
         "mx-auto",
       ],
       onclick: () => {
-        alert("Bonjour 0000000000000");
+        console.log("Bonjour 0000000000000");
 
         const modal = document.getElementById("registerModalGroup");
         if (modal) {

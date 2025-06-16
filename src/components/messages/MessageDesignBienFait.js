@@ -1,8 +1,11 @@
+// Message.js - Système de messagerie complet (version corrigée)
+
+// ===== IMPORTS =====
 import {
   updateContactList,
   updateContactListArchive,
 } from "../discussion/contacts/contact.js";
-import { readData, addData, deleteData } from "../../utils/data.js";
+import { readData, addData } from "../../utils/data.js";
 import {
   getSelectedContacts,
   resetSelectedContacts,
@@ -13,6 +16,7 @@ import { authManager } from "../auth/authManager.js";
 // ===== VARIABLES GLOBALES =====
 let currentRecipient = null;
 let currentlySelectedContactElement = null;
+let chatHeaderNameElement = null;
 
 // ===== FONCTIONS PRINCIPALES =====
 
@@ -48,6 +52,12 @@ const sendMessage = async (idEnvoyeur, userSelection, msg) => {
     const saved = await saveNewMessage(messageObj);
     if (saved) {
       console.log("✅ Message envoyé avec succès !");
+      // Mettre à jour l'affichage pour l'expéditeur immédiatement
+      const messagesContainer = document.getElementById("messagesContainer");
+      if (messagesContainer && String(idEnvoyeur) === getCurrentUserId()) {
+        displayMessage(messageObj, true);
+      }
+      // Notifier les deux utilisateurs via un événement
       window.dispatchEvent(
         new CustomEvent("messageSent", { detail: messageObj })
       );
@@ -63,7 +73,9 @@ const sendMessage = async (idEnvoyeur, userSelection, msg) => {
 
 const saveNewMessage = async (messageObj) => {
   try {
-    await addData("messages", messageObj);
+    const messages = (await readData("messages")) || [];
+    messages.push(messageObj);
+    await addData("messages", messages);
     console.log("💾 Message sauvegardé");
     return true;
   } catch (error) {
@@ -95,6 +107,7 @@ const getAvailableContacts = async () => {
       .map((contact) => ({
         id: String(contact.id || contact.nom),
         name: contact.nom || contact.name,
+        phone: contact.telephone || contact.phone || "N/A",
       }));
   } catch (error) {
     console.error("❌ Erreur récupération contacts:", error);
@@ -102,33 +115,45 @@ const getAvailableContacts = async () => {
   }
 };
 
+// CORRIGÉ - Version simplifiée
 const getMessages = async (userId1, userId2) => {
   try {
     const messages = (await readData("messages")) || [];
 
-    return messages
+    console.clear();
+    console.table(messages);
+
+    // Filtrer les messages valides
+    const cleanMessages = messages.filter(
+      (msg) => msg && typeof msg === "object" && msg.id && msg.content
+    );
+
+    const conversation = cleanMessages
       .filter(
         (msg) =>
-          msg &&
-          typeof msg === "object" &&
-          msg.id &&
-          msg.content &&
-          ((String(msg.senderId) === String(userId1) &&
+          (String(msg.senderId) === String(userId1) &&
             String(msg.recipientId) === String(userId2)) ||
-            (String(msg.senderId) === String(userId2) &&
-              String(msg.recipientId) === String(userId1)))
+          (String(msg.senderId) === String(userId2) &&
+            String(msg.recipientId) === String(userId1))
       )
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    return conversation;
   } catch (error) {
     console.error("❌ Erreur récupération messages:", error);
     return [];
   }
 };
 
+
+// CORRIGÉ - Classes CSS fixes
 const displayMessage = (messageObj, isSentByMe = false) => {
   const messagesContainer = document.getElementById("messagesContainer");
+
   if (!messagesContainer) {
-    console.error("❌ messagesContainer non trouvé");
+    console.error(
+      "❌ messagesContainer n'est pas défini. Vérifiez l'initialisation."
+    );
     return;
   }
 
@@ -136,74 +161,67 @@ const displayMessage = (messageObj, isSentByMe = false) => {
     messageObj.isSelfMessage ||
     String(messageObj.senderId) === String(messageObj.recipientId);
 
+  // Classes CSS fixes sans interpolation dynamique
+  const messageContainerClass = `flex mb-3 ${
+    isSentByMe ? "justify-end" : "justify-start"
+  }`;
+
+  let messageBubbleClass =
+    "max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow-sm border ";
+  if (isSelfMessage) {
+    messageBubbleClass += "bg-yellow-100 text-gray-800 border-yellow-300";
+  } else if (isSentByMe) {
+    messageBubbleClass += "bg-blue-500 text-white";
+  } else {
+    messageBubbleClass += "bg-white text-gray-800 border-gray-200";
+  }
+
+  const timeClass = `text-xs mt-1 opacity-70 ${
+    isSentByMe ? "text-right" : "text-left"
+  }`;
+
   const messageElement = createElement(
     "div",
-    { class: ["flex", isSentByMe ? "justify-end" : "justify-start", "mb-3"] },
+    { class: [messageContainerClass] },
     [
-      createElement(
-        "div",
-        {
-          class: [
-            "max-w-xs",
-            "lg:max-w-md",
-            "px-4",
-            "py-2",
-            "rounded-lg",
-            "shadow-sm",
-            "border",
-            isSelfMessage
-              ? "bg-yellow-100 text-gray-800 border-yellow-300"
-              : isSentByMe
-              ? "bg-blue-500 text-white border-blue-500"
-              : "bg-white text-gray-800 border-gray-200",
-          ],
-        },
-        [
-          ...(isSelfMessage
-            ? [
-                createElement(
-                  "div",
-                  { class: ["flex", "items-center", "gap-1", "mb-1"] },
-                  [
-                    createElement("i", {
-                      class: [
-                        "fas",
-                        "fa-sticky-note",
-                        "text-yellow-600",
-                        "text-xs",
-                      ],
-                    }),
-                    createElement(
-                      "span",
-                      { class: ["text-xs", "text-yellow-600", "font-medium"] },
-                      "Note personnelle"
-                    ),
-                  ]
-                ),
-              ]
-            : []),
-          createElement(
-            "p",
-            { class: ["text-sm", "break-words"] },
-            messageObj.content
-          ),
-          createElement(
-            "p",
-            {
-              class: [
-                "text-xs",
-                "mt-1",
-                "opacity-70",
-                isSentByMe ? "text-right" : "text-left",
-              ],
-            },
-            new Date(messageObj.timestamp).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          ),
-        ]
-      ),
+      createElement("div", { class: [messageBubbleClass] }, [
+        ...(isSelfMessage
+          ? [
+              createElement(
+                "div",
+                { class: ["flex", "items-center", "gap-1", "mb-1"] },
+                [
+                  createElement("i", {
+                    class: [
+                      "fas",
+                      "fa-sticky-note",
+                      "text-yellow-600",
+                      "text-xs",
+                    ],
+                  }),
+                  createElement(
+                    "span",
+                    { class: ["text-xs", "text-yellow-600", "font-medium"] },
+                    "Note personnelle"
+                  ),
+                ]
+              ),
+            ]
+          : []),
+        createElement(
+          "p",
+          { class: ["text-sm", "break-words"] },
+          messageObj.content
+        ),
+        createElement(
+          "p",
+          { class: [timeClass] },
+          new Date(messageObj.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        ),
+      ]),
     ]
   );
 
@@ -211,14 +229,19 @@ const displayMessage = (messageObj, isSentByMe = false) => {
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 };
 
+// CORRIGÉ - Utilisation de authManager pour l'ID utilisateur
 const loadConversation = async (recipientId) => {
   const messagesContainer = document.getElementById("messagesContainer");
+
   if (!messagesContainer) {
-    console.error("❌ messagesContainer non trouvé");
+    console.error(
+      "❌ messagesContainer non défini. Vérifiez l'ID 'messagesContainer' dans le DOM."
+    );
     return;
   }
 
-  const currentUserId = getCurrentUserId();
+  // CORRECTION : Utiliser directement authManager
+  const currentUserId = authManager.getCurrentUser();
   if (!currentUserId) {
     console.error("❌ Utilisateur non défini.");
     return;
@@ -228,6 +251,7 @@ const loadConversation = async (recipientId) => {
     `🔍 Chargement de la conversation entre ${currentUserId} et ${recipientId}`
   );
 
+  // Afficher un indicateur de chargement
   messagesContainer.innerHTML = `
     <div class="flex justify-center items-center h-full">
       <div class="text-center text-gray-500">
@@ -261,6 +285,9 @@ const loadConversation = async (recipientId) => {
       messages.forEach((msg) =>
         displayMessage(msg, String(msg.senderId) === String(currentUserId))
       );
+      console.log(`✅ ${messages.length} messages affichés.`);
+
+      // Faire défiler vers le bas
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
@@ -277,6 +304,7 @@ const loadConversation = async (recipientId) => {
   }
 };
 
+// CORRIGÉ - Ajout du délai pour la mise à jour
 const selectContact = async (contactId, contactName) => {
   console.log(`👤 Contact sélectionné: ${contactName} (${contactId})`);
 
@@ -377,7 +405,7 @@ const showContactSelector = async () => {
 
   if (contacts.length === 0) {
     console.warn("⚠️ Aucun contact disponible.");
-    alert("Aucun contact disponible pour commencer une conversation.");
+    console.log("Aucun contact disponible pour commencer une conversation.");
     return;
   }
 
@@ -467,6 +495,13 @@ const showContactSelector = async () => {
                         },
                         contact.name
                       ),
+                      createElement(
+                        "div",
+                        {
+                          class: ["text-sm", "text-gray-500"],
+                        },
+                        contact.phone
+                      ),
                     ]
                   ),
                 ]
@@ -503,9 +538,8 @@ const closeContactSelector = () => {
 };
 
 const updateChatHeader = (contactName) => {
-  const headerElement = document.getElementById("chatHeaderName");
-  if (headerElement) {
-    headerElement.textContent = contactName;
+  if (chatHeaderNameElement) {
+    chatHeaderNameElement.textContent = contactName;
   }
 };
 
@@ -529,17 +563,17 @@ const highlightSelectedContact = (contactId) => {
 
 const createMessageButtons = () =>
   createElement("ul", { class: ["flex", "gap-x-2", "items-center"] }, [
-    createSecureButton("fa-delete-left", () =>
+    createSecureButton("fa-delete-left", "red-500", "red-300", () =>
       console.log("Action: Supprimer les messages de la conversation")
     ),
-    createSecureButton("fa-box-archive", () => {
+    createSecureButton("fa-box-archive", "gray-400", "gray-400", () => {
       authManager.requireAuth(async () => {
         const selectedContactIds = getSelectedContacts().map(String);
         if (selectedContactIds.length === 0) {
           console.log(
             "Aucun contact sélectionné pour l'archivage/désarchivage."
           );
-          alert(
+          console.log(
             "Veuillez sélectionner au moins un contact pour archiver ou désarchiver."
           );
           return;
@@ -573,7 +607,7 @@ const createMessageButtons = () =>
           updateContactList();
           updateContactListArchive();
           resetSelectedContacts();
-          alert("Contacts archivés/désarchivés avec succès.");
+          console.log("Contacts archivés/désarchivés avec succès.");
         } else {
           console.log(
             "Aucun changement de statut d'archive pour les contacts sélectionnés."
@@ -581,15 +615,15 @@ const createMessageButtons = () =>
         }
       });
     }),
-    createSecureButton("fa-square", () =>
+    createSecureButton("fa-square", "gray-700", "gray-600", () =>
       console.log("Action: Marquer comme lu/non lu")
     ),
-    createSecureButton("fa-trash", () =>
+    createSecureButton("fa-trash", "red-600", "red-600", () =>
       console.log("Action: Mettre à la corbeille")
     ),
   ]);
 
-const createSecureButton = (iconClass, onClick) =>
+const createSecureButton = (iconClass, textColor, borderColor, onClick) =>
   createElement(
     "li",
     {},
@@ -600,7 +634,7 @@ const createSecureButton = (iconClass, onClick) =>
           "w-9",
           "h-9",
           "border-2",
-          "border-gray-300",
+          `border-${borderColor}`,
           "rounded-full",
           "flex",
           "items-center",
@@ -608,15 +642,23 @@ const createSecureButton = (iconClass, onClick) =>
           "transition",
           "hover:bg-gray-100",
           "hover:scale-105",
+          "cursor-pointer",
         ],
         onclick: onClick,
       },
       [
         createElement("i", {
-          class: ["block", "text-sm", "fa-solid", iconClass, "text-gray-700"],
+          class: [
+            "block",
+            "text-sm",
+            "fa-solid",
+            iconClass,
+            `text-${textColor}`,
+          ],
         }),
       ]
-    )
+    ),
+    true
   );
 
 const renderContactListInPanel = () => {
@@ -624,240 +666,277 @@ const renderContactListInPanel = () => {
 };
 
 const createMessage = () => {
-  const chatHeaderName = createElement(
-    "span",
-    {
-      class: ["font-medium", "text-gray-800"],
-      id: "chatHeaderName",
-      "data-chat-header": true,
-    },
-    "Sélectionner un contact"
-  );
-
   const messageComponent = createElement(
     "div",
     { class: ["flex", "w-full", "h-screen", "border-t", "border-gray-200"] },
     [
       createElement(
         "div",
-        { class: ["flex", "flex-col", "w-full", "h-full"] },
+        {
+          class: [
+            "w-1/3",
+            "h-full",
+            "border-r",
+            "border-gray-200",
+            "bg-white",
+            "flex",
+            "flex-col",
+          ],
+        },
         [
           createElement(
             "div",
-            {
-              class: [
-                "h-16",
-                "flex",
-                "justify-between",
-                "items-center",
-                "px-6",
-                "border-b",
-                "border-gray-200",
-                "bg-white",
-                "shadow-sm",
-              ],
-            },
+            { class: ["p-3", "border-b", "border-gray-200"] },
             [
-              createElement(
-                "div",
-                {
-                  class: ["flex", "items-center", "gap-3"],
-                },
-                [
-                  createElement(
-                    "div",
-                    {
-                      class: [
-                        "w-10",
-                        "h-10",
-                        "rounded-full",
-                        "bg-blue-100",
-                        "flex",
-                        "items-center",
-                        "justify-center",
-                      ],
-                    },
-                    [
-                      createElement("i", {
-                        class: ["fas", "fa-user", "text-blue-600", "text-lg"],
-                      }),
-                    ]
-                  ),
-                  createElement(
-                    "div",
-                    {
-                      class: ["flex", "flex-col"],
-                    },
-                    [
-                      chatHeaderName,
-                      createElement(
-                        "span",
-                        { class: ["text-xs", "text-gray-500"] },
-                        "En ligne"
-                      ),
-                    ]
-                  ),
-                ]
-              ),
-              createMessageButtons(),
+              createElement("input", {
+                type: "text",
+                placeholder: "Rechercher un contact",
+                class: [
+                  "w-full",
+                  "p-2",
+                  "rounded-full",
+                  "border",
+                  "border-gray-300",
+                  "focus:outline-none",
+                  "focus:ring-1",
+                  "focus:ring-blue-400",
+                  "text-sm",
+                ],
+              }),
             ]
           ),
           createElement(
             "div",
             {
-              class: [
-                "flex-1",
-                "overflow-y-auto",
-                "bg-gray-50",
-                "min-h-[200px]",
-              ],
-              id: "messagesContainer",
+              class: ["flex-1", "overflow-y-auto", "p-2"],
+              id: "discussionList",
             },
-            [
-              createElement(
-                "div",
-                {
-                  class: ["text-center", "text-gray-500", "mt-8", "p-4"],
-                },
-                [
-                  createElement(
-                    "p",
-                    {},
-                    "💬 Sélectionnez un contact pour commencer"
-                  ),
-                  createElement(
-                    "button",
-                    {
-                      class: [
-                        "mt-3",
-                        "bg-blue-500",
-                        "text-white",
-                        "px-4",
-                        "py-2",
-                        "rounded-lg",
-                        "hover:bg-blue-600",
-                        "transition",
-                        "text-sm",
-                        "font-medium",
-                      ],
-                      onclick: () =>
-                        authManager.requireAuth(showContactSelector),
-                    },
-                    "Choisir un contact"
-                  ),
-                ]
-              ),
-            ]
-          ),
-          createElement(
-            "div",
-            {
-              class: [
-                "py-3",
-                "px-6",
-                "bg-white",
-                "border-t",
-                "border-gray-200",
-              ],
-            },
-            [
-              createElement(
-                "div",
-                { class: ["flex", "items-center", "gap-2"] },
-                [
-                  createElement(
-                    "button",
-                    {
-                      class: [
-                        "w-10",
-                        "h-10",
-                        "rounded-full",
-                        "bg-gray-100",
-                        "flex",
-                        "items-center",
-                        "justify-center",
-                        "text-gray-600",
-                        "hover:bg-gray-200",
-                      ],
-                    },
-                    [
-                      createElement("i", {
-                        class: ["fas", "fa-plus", "text-sm"],
-                      }),
-                    ]
-                  ),
-                  createElement("input", {
-                    type: "text",
-                    class: [
-                      "flex-1",
-                      "h-10",
-                      "rounded-full",
-                      "border",
-                      "border-gray-300",
-                      "px-4",
-                      "text-sm",
-                      "focus:outline-none",
-                      "focus:ring-2",
-                      "focus:ring-blue-400",
-                    ],
-                    id: "inputMessage",
-                    placeholder: "Écrire un message...",
-                    style: { backgroundColor: "#f9fafb" },
-                    onkeypress: (e) => {
-                      if (e.key === "Enter") {
-                        handleSecureMessageSend();
-                      }
-                    },
-                  }),
-                  createElement(
-                    "button",
-                    {
-                      class: [
-                        "w-10",
-                        "h-10",
-                        "bg-blue-500",
-                        "rounded-full",
-                        "flex",
-                        "items-center",
-                        "justify-center",
-                        "text-white",
-                        "hover:bg-blue-600",
-                      ],
-                      id: "envoyer",
-                      onclick: handleSecureMessageSend,
-                    },
-                    [
-                      createElement("i", {
-                        class: ["fas", "fa-paper-plane", "text-sm"],
-                      }),
-                    ]
-                  ),
-                ]
-              ),
-            ]
+            []
           ),
         ]
       ),
+      createElement("div", { class: ["flex", "flex-col", "w-2/3", "h-full"] }, [
+        createElement(
+          "div",
+          {
+            class: [
+              "h-16",
+              "flex",
+              "justify-between",
+              "items-center",
+              "px-6",
+              "border-b",
+              "border-gray-200",
+              "bg-white",
+              "shadow-sm",
+            ],
+          },
+          [
+            createElement(
+              "div",
+              {
+                class: ["flex", "items-center", "gap-3"],
+              },
+              [
+                createElement(
+                  "div",
+                  {
+                    class: [
+                      "w-10",
+                      "h-10",
+                      "rounded-full",
+                      "bg-blue-100",
+                      "flex",
+                      "items-center",
+                      "justify-center",
+                    ],
+                  },
+                  [
+                    createElement("i", {
+                      class: ["fas", "fa-user", "text-blue-600", "text-lg"],
+                    }),
+                  ]
+                ),
+                (chatHeaderNameElement = createElement(
+                  "div",
+                  {
+                    class: ["flex", "flex-col"],
+                  },
+                  [
+                    createElement(
+                      "span",
+                      {
+                        class: ["font-medium", "text-gray-800"],
+                        "data-chat-header": true,
+                      },
+                      currentRecipient
+                        ? "Chargement..."
+                        : "Sélectionner un contact"
+                    ),
+                    createElement(
+                      "span",
+                      { class: ["text-xs", "text-gray-500"] },
+                      "En ligne"
+                    ),
+                  ]
+                )),
+              ]
+            ),
+            createMessageButtons(),
+          ]
+        ),
+        createElement(
+          "div",
+          {
+            class: ["flex-1", "overflow-y-auto", "bg-gray-50"],
+            id: "messagesContainer",
+          },
+          [
+            createElement(
+              "div",
+              {
+                class: ["text-center", "text-gray-500", "mt-8", "p-4"],
+              },
+              [
+                createElement(
+                  "p",
+                  {},
+                  "💬 Sélectionnez un contact pour commencer"
+                ),
+                createElement(
+                  "button",
+                  {
+                    class: [
+                      "mt-3",
+                      "bg-blue-500",
+                      "text-white",
+                      "px-4",
+                      "py-2",
+                      "rounded-lg",
+                      "hover:bg-blue-600",
+                      "transition",
+                      "text-sm",
+                      "font-medium",
+                    ],
+                    onclick: () => authManager.requireAuth(showContactSelector),
+                  },
+                  "Choisir un contact"
+                ),
+              ]
+            ),
+          ]
+        ),
+        createElement(
+          "div",
+          {
+            class: ["py-3", "px-6", "bg-white", "border-t", "border-gray-200"],
+          },
+          [
+            createElement("div", { class: ["flex", "items-center", "gap-2"] }, [
+              createElement(
+                "button",
+                {
+                  class: [
+                    "w-10",
+                    "h-10",
+                    "rounded-full",
+                    "bg-gray-100",
+                    "flex",
+                    "items-center",
+                    "justify-center",
+                    "text-gray-600",
+                    "hover:bg-gray-200",
+                  ],
+                },
+                [
+                  createElement("i", {
+                    class: ["fas", "fa-plus", "text-sm"],
+                  }),
+                ]
+              ),
+              createElement("input", {
+                type: "text",
+                class: [
+                  "flex-1",
+                  "h-10",
+                  "rounded-full",
+                  "border",
+                  "border-gray-300",
+                  "px-4",
+                  "text-sm",
+                  "focus:outline-none",
+                  "focus:ring-2",
+                  "focus:ring-blue-400",
+                ],
+                id: "inputMessage",
+                placeholder: "Écrire un message...",
+                style: { backgroundColor: "#f9fafb" },
+                onkeypress: (e) => {
+                  if (e.key === "Enter") {
+                    handleSecureMessageSend();
+                  }
+                },
+              }),
+              createElement(
+                "button",
+                {
+                  class: [
+                    "w-10",
+                    "h-10",
+                    "bg-blue-500",
+                    "rounded-full",
+                    "flex",
+                    "items-center",
+                    "justify-center",
+                    "text-white",
+                    "hover:bg-blue-600",
+                  ],
+                  id: "envoyer",
+                  onclick: handleSecureMessageSend,
+                },
+                [
+                  createElement("i", {
+                    class: ["fas", "fa-paper-plane", "text-sm"],
+                  }),
+                ]
+              ),
+            ]),
+          ]
+        ),
+      ]),
     ]
   );
 
-  // Écouter les nouveaux messages
-  window.addEventListener("messageSent", (event) => {
+  renderContactListInPanel();
+
+  // CORRECTION : Initialisation du header
+  if (!currentRecipient) {
+    updateChatHeader("Sélectionner un contact");
+  }
+
+  // CORRIGÉ - Ajout du délai pour la mise à jour
+  window.addEventListener("messageSent", async (event) => {
     const msg = event.detail;
     const currentUserId = getCurrentUserId();
+    console.log(
+      `📬 Nouvel événement messageSent reçu: ${msg.content} de ${msg.senderId} à ${msg.recipientId}`
+    );
 
-    if (!currentUserId || !currentRecipient) return;
+    // Ajouter un délai pour laisser la base de données se mettre à jour
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const isRelevant =
-      (String(msg.senderId) === currentUserId &&
-        String(msg.recipientId) === currentRecipient) ||
-      (String(msg.recipientId) === currentUserId &&
-        String(msg.senderId) === currentRecipient);
-
-    if (isRelevant) {
-      const messagesContainer = document.getElementById("messagesContainer");
-      if (messagesContainer) {
-        displayMessage(msg, String(msg.senderId) === currentUserId);
+    if (
+      currentUserId &&
+      (String(msg.senderId) === currentUserId ||
+        String(msg.recipientId) === currentUserId)
+    ) {
+      if (
+        currentRecipient &&
+        (currentRecipient === String(msg.senderId) ||
+          currentRecipient === String(msg.recipientId))
+      ) {
+        console.log("🔄 Rechargement de la conversation...");
+        await loadConversation(currentRecipient);
       }
     }
   });
@@ -866,12 +945,15 @@ const createMessage = () => {
 };
 
 // ===== ÉCOUTEURS D'ÉVÉNEMENTS =====
+
 window.addEventListener("contactSelected", (event) => {
   const { contactId, contactName } = event.detail;
+  console.log("📡 Événement de sélection de contact reçu:", event.detail);
   selectContact(contactId, contactName);
 });
 
 // ===== API PUBLIQUE =====
+
 export const messageAPI = {
   sendMessage,
   getCurrentUserId,
@@ -891,9 +973,18 @@ export const messageAPI = {
   debugAllMessages: async () => {
     try {
       const messages = (await readData("messages")) || [];
+      const cleanMessages = messages.filter(
+        (msg) => msg && typeof msg === "object" && msg.id && msg.content
+      );
+
+      const uniqueMessages = cleanMessages.filter(
+        (message, index, arr) =>
+          arr.findIndex((m) => m.id === message.id) === index
+      );
+
       console.group("📧 TOUS LES MESSAGES SAUVEGARDÉS");
-      console.log(`📊 Total: ${messages.length} messages`);
-      messages
+      console.log(`📊 Total: ${uniqueMessages.length} messages uniques`);
+      uniqueMessages
         .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
         .forEach((msg, index) => {
           const time = new Date(msg.timestamp).toLocaleString();
@@ -905,7 +996,7 @@ export const messageAPI = {
           );
         });
       console.groupEnd();
-      return messages;
+      return uniqueMessages;
     } catch (error) {
       console.error("❌ Erreur debug messages:", error);
       return [];
@@ -920,8 +1011,7 @@ export const messageAPI = {
   clearAllMessages: async () => {
     try {
       console.log("🗑️ Suppression de tous les messages...");
-      const messages = (await readData("messages")) || [];
-      await Promise.all(messages.map((msg) => deleteData("messages", msg.id)));
+      await addData("messages", []);
       console.log("✅ Tous les messages ont été supprimés");
       const messagesContainer = document.getElementById("messagesContainer");
       if (messagesContainer) {
@@ -944,11 +1034,6 @@ export const messageAPI = {
     } catch (error) {
       console.error("❌ Erreur suppression messages:", error);
     }
-  },
-  testGetMessages: async (userId1, userId2) => {
-    const messages = await getMessages(userId1, userId2);
-    console.table(messages);
-    return messages;
   },
 };
 
