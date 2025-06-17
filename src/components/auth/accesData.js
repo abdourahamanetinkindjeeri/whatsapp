@@ -1,8 +1,7 @@
 // PURE FUNCTIONS - DATA ACCESS
 // =============================================================================
 
-const API_URL =
-  import.meta.env.VITE_API_URL || "https://whatsapp-clone-wmxm.onrender.com";
+import { ROUTES } from "../../config.js";
 
 // Cache pour stocker les données préchargées
 let contactsCache = { users: [] };
@@ -26,7 +25,7 @@ async function loadContactsData() {
 // Chargement asynchrone avec fetch
 async function loadContactsAsync() {
   try {
-    const response = await fetch(`${API_URL}/users`);
+    const response = await fetch(ROUTES.USERS);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

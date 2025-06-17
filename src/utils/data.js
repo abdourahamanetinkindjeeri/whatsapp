@@ -3,9 +3,9 @@ import { updateContactList } from "../components/discussion/contacts/contact.js"
 import { isEmptyString, isString, isArray } from "../utils/utililaire.js";
 
 const API_URL =
-  process.env.NODE_ENV === "production"
-    ? "https://whatsapp-json-server.onrender.com" // URL de production sur Render
-    : "http://localhost:3000";
+  import.meta.env.VITE_API_URL || "https://whatsapp-clone-wmxm.onrender.com";
+
+export { API_URL };
 
 // ========== CRUD GÉNÉRIQUE ==========
 

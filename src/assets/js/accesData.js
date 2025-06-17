@@ -1,9 +1,8 @@
-const API_URL =
-  import.meta.env.VITE_API_URL || "https://whatsapp-clone-wmxm.onrender.com";
+import { ROUTES } from "../../config.js";
 
 async function fetchUsers() {
   try {
-    const response = await fetch(`${API_URL}/users`, {
+    const response = await fetch(ROUTES.USERS, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -25,7 +24,7 @@ async function fetchUsers() {
 
 async function fetchMessages(userId) {
   try {
-    const response = await fetch(`${API_URL}/messages?recipientId=${userId}`, {
+    const response = await fetch(ROUTES.USER_MESSAGES(userId), {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +46,7 @@ async function fetchMessages(userId) {
 
 async function sendMessage(userId, message) {
   try {
-    const response = await fetch(`${API_URL}/messages`, {
+    const response = await fetch(ROUTES.MESSAGES, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -75,7 +74,7 @@ async function sendMessage(userId, message) {
 
 async function createUser(userData) {
   try {
-    const response = await fetch(`${API_URL}/users`, {
+    const response = await fetch(ROUTES.USERS, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
