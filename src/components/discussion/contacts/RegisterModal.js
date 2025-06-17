@@ -90,7 +90,6 @@ const createRegisterModal = (onSubmit) =>
             "Nouveau contact"
           ),
           createElement("form", { id: "registerForm" }, [
-            // createInputField("id", "ID", "number", true),
             createInputField("nom", "Nom", "text", true, "Entrez le nom"),
             createInputField(
               "prenom",
@@ -106,9 +105,6 @@ const createRegisterModal = (onSubmit) =>
               true,
               "1234567890"
             ),
-            // createCheckboxField("status", "Statut actif"),
-            // createCheckboxField("archive", "Archivé"),
-            // createCheckboxField("delete", "Supprimé"),
             createElement(
               "button",
               {

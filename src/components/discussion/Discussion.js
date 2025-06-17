@@ -12,7 +12,6 @@ import {
 
 let discussionList;
 
-const updateDiscussionList = () => {};
 const createDiscussion = () => {
   discussionList = createElement(
     "ul",
@@ -73,10 +72,8 @@ const createDiscussion = () => {
     ]
   );
 
-  // search.value = 'Bonjour'
   return {
     body: discussion,
-    update: updateDiscussionList,
     updateContactList,
     updateGroupsList,
   };

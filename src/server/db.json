@@ -1113,6 +1113,19 @@
         "senderName": "Mamadou Diop"
       },
       "id": "d6be"
+    },
+    {
+      "id": "msg_1750121205291_9ws82r",
+      "senderId": "1",
+      "recipientId": "5",
+      "content": "Bonsoir",
+      "timestamp": "2025-06-17T00:46:45.291Z",
+      "status": "sent",
+      "type": "text",
+      "isSelfMessage": false,
+      "read": false,
+      "readAt": null,
+      "senderName": "Diop"
     }
   ],
   "groupMessages": [

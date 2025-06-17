@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: whatsapp-json-server
+    runtime: node
+    env: node
+    buildCommand: |
+      cd src/server
+      npm install
+    startCommand: |
+      cd src/server
+      node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/server
+      sizeGB: 1

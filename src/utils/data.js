@@ -2,7 +2,10 @@ import { updateGroupsList } from "../components/discussion/groups/group.js";
 import { updateContactList } from "../components/discussion/contacts/contact.js";
 import { isEmptyString, isString, isArray } from "../utils/utililaire.js";
 
-const BASE_URL = "http://localhost:3000"; // adapte selon ton port/config
+const API_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://whatsapp-json-server.onrender.com" // URL de production sur Render
+    : "http://localhost:3000";
 
 // ========== CRUD GÉNÉRIQUE ==========
 
@@ -17,7 +20,7 @@ export const readData = async (key) => {
   }
 
   try {
-    const res = await fetch(`${BASE_URL}/${key}`);
+    const res = await fetch(`${API_URL}/${key}`);
     if (!res.ok) {
       console.warn(`Ressource ${key} non trouvée, retour d'un tableau vide`);
       return [];
@@ -39,7 +42,7 @@ export const postData = async (key, data) => {
   }
 
   try {
-    const res = await fetch(`${BASE_URL}/${key}`, {
+    const res = await fetch(`${API_URL}/${key}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -61,7 +64,7 @@ export const patchData = async (key, id, partialData) => {
   }
 
   try {
-    const res = await fetch(`${BASE_URL}/${key}/${id}`, {
+    const res = await fetch(`${API_URL}/${key}/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(partialData),
@@ -83,7 +86,7 @@ export const deleteData = async (key, id) => {
   }
 
   try {
-    const res = await fetch(`${BASE_URL}/${key}/${id}`, {
+    const res = await fetch(`${API_URL}/${key}/${id}`, {
       method: "DELETE",
     });
     if (!res.ok)
