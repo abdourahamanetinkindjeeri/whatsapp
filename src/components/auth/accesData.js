@@ -2,6 +2,7 @@
 // =============================================================================
 
 import { ROUTES } from "../../config.js";
+import { readData, addData } from "../../utils/data.js";
 
 // Cache pour stocker les données préchargées
 let contactsCache = { users: [] };
@@ -55,9 +56,15 @@ function normalizePhoneNumber(phone) {
 
 function mapRawContactToContact(rawContact) {
   return {
-    name: rawContact.nom || "Utilisateur",
-    phone: rawContact.telephone,
+    ...rawContact,
+    name: rawContact.nom || rawContact.name || "Utilisateur",
+    phone: rawContact.telephone || rawContact.phone,
     id: rawContact.id || null,
+    profile: rawContact.profile || {
+      avatar: null,
+      status: "En ligne",
+      bio: "",
+    },
   };
 }
 
@@ -100,6 +107,64 @@ async function refreshContactsData() {
   await loadContactsData();
 }
 
+// Fonction pour récupérer les messages
+async function fetchMessages(userId1, userId2) {
+  try {
+    const messages = (await readData("messages")) || [];
+    return messages
+      .filter(
+        (msg) =>
+          msg &&
+          typeof msg === "object" &&
+          msg.id &&
+          msg.content &&
+          ((String(msg.senderId) === String(userId1) &&
+            String(msg.recipientId) === String(userId2)) ||
+            (String(msg.senderId) === String(userId2) &&
+              String(msg.recipientId) === String(userId1)))
+      )
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  } catch (error) {
+    console.error("Erreur lors de la récupération des messages:", error);
+    return [];
+  }
+}
+
+// Fonction pour envoyer un message
+async function sendMessage(idEnvoyeur, userSelection, msg) {
+  if (!idEnvoyeur || !userSelection || !msg?.trim()) {
+    return { success: false, error: "Données manquantes pour l'envoi" };
+  }
+
+  try {
+    const users = (await readData("users")) || [];
+    const sender = users.find((u) => String(u.id) === String(idEnvoyeur));
+    const senderName = sender ? sender.nom || sender.name : "Utilisateur";
+
+    const messageObj = {
+      id: Date.now() + Math.random(),
+      senderId: String(idEnvoyeur),
+      recipientId: String(userSelection),
+      content: msg.trim(),
+      timestamp: new Date().toISOString(),
+      status: "sent",
+      type: "text",
+      isSelfMessage: String(idEnvoyeur) === String(userSelection),
+      read: false,
+      readAt: null,
+      senderName: senderName,
+    };
+
+    await addData("messages", messageObj);
+    window.dispatchEvent(
+      new CustomEvent("messageSent", { detail: messageObj })
+    );
+    return { success: true, message: messageObj };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
 export {
   loadContactsData,
   getActiveContacts,
@@ -108,4 +173,6 @@ export {
   findContactByPhoneNumber,
   createSearchResult,
   refreshContactsData,
+  fetchMessages,
+  sendMessage,
 };

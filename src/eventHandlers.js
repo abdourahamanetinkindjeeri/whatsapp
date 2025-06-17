@@ -100,33 +100,28 @@ import { addData, readData } from "./utils/data.js";
 //     }
 //   } catch (error) {
 //     console.error("Erreur dans validateForm :", error);
-//     console.log("Erreur lors de l’ajout du contact : " + error.message);
+//     console.log("Erreur lors de l'ajout du contact : " + error.message);
 //   }
 // };
 
-const validateForm = async (updateDiscussionList) => {
+const validateContactForm = async (updateDiscussionList) => {
   try {
-    // Récupérer les données utilisateurs
     const data = await readData("users");
     const users = Array.isArray(data?.users) ? data.users : [];
-    console.log("Données users :", data); // Log pour déboguer
+    console.log("Données users :", data);
 
-    // Vérifier l'existence du formulaire
     const form = document.getElementById("registerForm");
     if (!form) {
       console.error("Formulaire registerForm non trouvé.");
-      // console.log("Erreur : Formulaire de contact non disponible.");
       return;
     }
 
-    // Masquer tous les messages d'erreur
     document
       .querySelectorAll("#idError, #nomError, #prenomError, #telephoneError")
       .forEach((error) => error.classList.add("hidden"));
 
     let isValid = true;
 
-    // Validation du champ Nom
     const nomInput = document.getElementById("nom");
     if (!nomInput) throw new Error("Champ Nom manquant dans le formulaire.");
     const nom = nomInput.value.trim();
@@ -135,7 +130,6 @@ const validateForm = async (updateDiscussionList) => {
       isValid = false;
     }
 
-    // Validation du champ Prénom
     const prenomInput = document.getElementById("prenom");
     if (!prenomInput)
       throw new Error("Champ Prénom manquant dans le formulaire.");
@@ -145,7 +139,6 @@ const validateForm = async (updateDiscussionList) => {
       isValid = false;
     }
 
-    // Validation du champ Téléphone
     const telephoneInput = document.getElementById("telephone");
     if (!telephoneInput) throw new Error("Champ Téléphone non trouvé.");
     const telephone = telephoneInput.value.trim();
@@ -155,7 +148,6 @@ const validateForm = async (updateDiscussionList) => {
       isValid = false;
     }
 
-    // Vérification de l'unicité du numéro de téléphone
     const numeroExistant = users.filter(
       (user) => user.telephone === telephone && user.delete === false
     );
@@ -167,7 +159,6 @@ const validateForm = async (updateDiscussionList) => {
       isValid = false;
     }
 
-    // Si le formulaire est valide, ajouter le nouveau contact
     if (isValid) {
       const trouverProchainPrenomUnique = (users, nom, prenom) => {
         const basePrenom = prenom.replace(/\s*\d+$/, "").trim() || "Inconnu";
@@ -182,7 +173,7 @@ const validateForm = async (updateDiscussionList) => {
           const match = user.prenom.trim().match(/(\d+)$/);
           return match ? Number(match[1]) : 0;
         });
-        const max = Math.max(0, ...chiffres); // Évite NaN si aucun chiffre
+        const max = Math.max(0, ...chiffres);
         return `${basePrenom} ${max + 1}`;
       };
 
@@ -191,24 +182,27 @@ const validateForm = async (updateDiscussionList) => {
         id: Date.now(),
         nom,
         prenom: prenomUnique,
-        status: document.getElementById("status")?.checked ?? false, // Valeur par défaut si absent
+        status: document.getElementById("status")?.checked ?? false,
         archive: false,
         delete: false,
         telephone,
       };
-      await addData("users", newContact); // Attendre l'ajout des données
-      updateDiscussionList();
+      await addData("users", newContact);
+      if (typeof updateDiscussionList === "function") {
+        await updateDiscussionList();
+      }
       form.reset();
-      document.getElementById("registerModal")?.classList.add("hidden"); // Sûr si absent
+      document.getElementById("registerModal")?.classList.add("hidden");
     }
   } catch (error) {
-    console.error("Erreur dans validateForm :", error);
+    console.error("Erreur dans validateContactForm :", error);
     console.log(
-      "Erreur lors de l’ajout du contact : " +
+      "Erreur lors de l'ajout du contact : " +
         (error.message || "Problème inconnu")
     );
   }
 };
+
 const validateGroupForm = async (updateDiscussionList) => {
   try {
     const form = document.getElementById("registerFormGroup");
@@ -218,7 +212,7 @@ const validateGroupForm = async (updateDiscussionList) => {
     }
 
     document
-      .querySelectorAll("#nomGroupError, #membreError, #adminError")
+      .querySelectorAll("#nomGroupError, #membreError")
       .forEach((error) => error.classList.add("hidden"));
 
     let isValid = true;
@@ -229,51 +223,54 @@ const validateGroupForm = async (updateDiscussionList) => {
       console.log("Erreur : Champ Nom du groupe manquant.");
       return;
     }
-    const nomGroup = nomGroupInput.value;
+    const nomGroup = nomGroupInput.value.trim();
     if (!nomGroup || nomGroup.length < 2) {
       document.getElementById("nomGroupError").classList.remove("hidden");
       isValid = false;
     }
 
+    // Get current user ID (assuming it's stored in localStorage or similar)
+    const currentUserId = 1; // Replace with actual current user ID
+
+    // Get selected members
     const membreCheckboxes = document.querySelectorAll(
       'input[name="membre[]"]:checked'
     );
     const membre = Array.from(membreCheckboxes).map((checkbox) =>
       Number(checkbox.value)
     );
-    membre.push(1);
+
+    // Add current user as member if not already included
+    if (!membre.includes(currentUserId)) {
+      membre.push(currentUserId);
+    }
+
     if (membre.length < 2) {
-      if (membre.length === 1)
-        document.getElementById("membreError").textContent =
-          "Il faut ajouter un autre membre pour pouvoir créer un groupe";
+      document.getElementById("membreError").textContent =
+        "Il faut ajouter au moins un autre membre pour pouvoir créer un groupe";
       document.getElementById("membreError").classList.remove("hidden");
       isValid = false;
     }
 
-    const adminSelect = document.querySelectorAll(
-      'input[name="admin[]"]:checked'
-    );
-    const admin = Array.from(adminSelect).map((cb) => Number(cb.value));
-
-    if (admin.length === 0) {
-      document.getElementById("adminError").classList.remove("hidden");
-      isValid = false;
-    }
-
-    admin.push(1);
     if (isValid) {
       const newGroup = {
         id: Date.now(),
-        nomGroup,
-        delete: false,
-        dateCreate: new Date().toISOString(),
-        membre,
-        admin,
-        status: document.getElementById("status").checked || false,
+        nom: nomGroup,
+        description: "",
+        membres: membre.map((userId) => ({
+          userId,
+          role: userId === currentUserId ? "admin" : "membre",
+          dateAjout: new Date().toISOString(),
+        })),
+        admin: currentUserId,
+        dateCreation: new Date().toISOString(),
         archive: false,
+        delete: false,
       };
-      addData("groups", newGroup);
-      updateDiscussionList();
+      await addData("groups", newGroup);
+      if (typeof updateDiscussionList === "function") {
+        await updateDiscussionList();
+      }
       form.reset();
       document.getElementById("registerModalGroup").classList.add("hidden");
     }
@@ -345,7 +342,7 @@ const testContact = {
 // console.log("Contact ajouté :", testContact);
 
 export {
-  validateForm,
+  validateContactForm,
   validateGroupForm,
   handleModalClose,
   testAddData,

@@ -133,27 +133,41 @@ export const archiveContacts = async (ids) => {
   }
 
   try {
+    console.log("IDs reçus pour archivage:", ids);
     const users = await readData("users");
+    console.log("Utilisateurs récupérés:", users);
 
     if (!users || !Array.isArray(users)) {
       throw new Error("Impossible de récupérer la liste des utilisateurs");
     }
 
-    const selected = users.filter((u) => ids.includes(u.id));
+    // Convertir les IDs en nombres pour la comparaison
+    const numericIds = ids.map((id) => Number(id));
+    console.log("IDs numériques:", numericIds);
+
+    const selected = users.filter((u) => numericIds.includes(Number(u.id)));
+    console.log("Contacts sélectionnés:", selected);
+
     if (selected.length === 0) {
       console.warn("Aucun utilisateur trouvé avec les IDs fournis");
       return false;
     }
 
     const isArchiving = selected.some((u) => u.archive === false);
+    console.log("Mode archivage:", isArchiving);
 
-    await Promise.all(
-      selected.map((user) =>
-        patchData("users", user.id, { archive: isArchiving })
-      )
-    );
+    const updatePromises = selected.map((user) => {
+      console.log(
+        `Mise à jour du contact ${user.id} avec archive=${isArchiving}`
+      );
+      return patchData("users", user.id, { archive: isArchiving });
+    });
 
-    updateContactList();
+    await Promise.all(updatePromises);
+    console.log("Mise à jour terminée");
+
+    // Mettre à jour les listes
+    await updateContactList();
     return isArchiving;
   } catch (error) {
     console.error("Erreur lors de l'archivage des contacts:", error);
@@ -167,21 +181,39 @@ export const desarchiveContacts = async (ids) => {
   }
 
   try {
+    console.log("IDs reçus pour désarchivage:", ids);
     const users = await readData("users");
+    console.log("Utilisateurs récupérés:", users);
 
     if (!users || !Array.isArray(users)) {
       throw new Error("Impossible de récupérer la liste des utilisateurs");
     }
 
-    const usersToUpdate = users.filter((u) => ids.includes(u.id));
+    // Convertir les IDs en nombres pour la comparaison
+    const numericIds = ids.map((id) => Number(id));
+    console.log("IDs numériques:", numericIds);
 
-    await Promise.all(
-      usersToUpdate.map((user) =>
-        patchData("users", user.id, { archive: !user.archive })
-      )
+    const usersToUpdate = users.filter((u) =>
+      numericIds.includes(Number(u.id))
     );
+    console.log("Contacts à désarchiver:", usersToUpdate);
 
-    updateContactList();
+    if (usersToUpdate.length === 0) {
+      console.warn("Aucun utilisateur trouvé avec les IDs fournis");
+      return false;
+    }
+
+    const updatePromises = usersToUpdate.map((user) => {
+      console.log(`Mise à jour du contact ${user.id} avec archive=false`);
+      return patchData("users", user.id, { archive: false });
+    });
+
+    await Promise.all(updatePromises);
+    console.log("Mise à jour terminée");
+
+    // Mettre à jour les listes
+    await updateContactList();
+    return true;
   } catch (error) {
     console.error("Erreur lors du désarchivage des contacts:", error);
     throw error;

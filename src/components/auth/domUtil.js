@@ -21,7 +21,7 @@ function showElement(elementId) {
 }
 
 function hideElement(elementId) {
-  const element = document.querySelector("#" + elementId);
+  const element = document.getElementById(elementId);
   if (element) {
     element.classList.add("hidden");
   }

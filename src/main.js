@@ -3,19 +3,22 @@ import { createElement } from "./utils/element";
 import "./assets/css/input.css";
 import createDiscussion from "./components/discussion/Discussion.js";
 import createMessage from "./components/messages/Message.js";
-import createRegisterModal from "./components/discussion/contacts/RegisterModal.js";
+import { createRegisterModal } from "./components/discussion/contacts/RegisterModal.js";
 import createRegisterModalGroups from "./components/discussion/groups/RegisterModalGroups.js";
+import { createRegisterForm } from "./components/auth/RegisterForm.js";
+import { hideElement, showElement } from "./components/auth/domUtil.js";
+import { displayMessage } from "./components/auth/optDisplayMessage.js";
 import {
-  validateForm,
+  validateContactForm,
   validateGroupForm,
   handleModalClose,
 } from "./eventHandlers.js";
 import { authManager } from "./components/auth/authManager.js";
 import {
-  fetchUsers,
   fetchMessages,
   sendMessage,
-} from "./assets/js/accesData.js";
+  loadContactsData,
+} from "./components/auth/accesData.js";
 
 // 🔐 Variables globales pour l'état de l'app
 let appInitialized = false;
@@ -26,8 +29,56 @@ let currentUserData = null;
 const getCurrentUserData = () => currentUserData;
 
 // 🆕 NOUVEAU : Écran de connexion obligatoire
-const createWelcomeScreen = () =>
-  createElement(
+const createWelcomeScreen = () => {
+  let formContainer = createElement("div", {
+    id: "formContainer",
+    class: ["mt-6"],
+  });
+
+  function showLogin() {
+    formContainer.innerHTML = "";
+    authManager.showLogin();
+    // The login modal will be handled by authManager
+  }
+
+  function showRegister() {
+    formContainer.innerHTML = "";
+    const registerForm = createRegisterForm((newUser) => {
+      displayMessage(
+        `Bienvenue ${newUser.prenom} ! Vous pouvez maintenant vous connecter.`,
+        "success"
+      );
+      showLogin();
+    });
+    // Add a 'Retour' button
+    const backBtn = createElement(
+      "button",
+      {
+        type: "button",
+        class: [
+          "mt-4",
+          "w-full",
+          "bg-gray-300",
+          "text-gray-800",
+          "py-2",
+          "px-4",
+          "rounded-md",
+          "hover:bg-gray-400",
+          "focus:outline-none",
+          "focus:ring-2",
+          "focus:ring-gray-500",
+          "focus:ring-offset-2",
+        ],
+        onclick: showLogin,
+      },
+      "⬅️ Retour"
+    );
+    formContainer.appendChild(registerForm);
+    formContainer.appendChild(backBtn);
+  }
+
+  // Main welcome layout
+  const welcomeScreen = createElement(
     "div",
     {
       class: ["flex", "items-center", "justify-center", "w-full", "h-screen"],
@@ -40,11 +91,14 @@ const createWelcomeScreen = () =>
         {
           class: [
             "text-center",
-            "p-8",
+            "p-10",
             "bg-white",
-            "rounded-lg",
-            "shadow-xl",
+            "rounded-2xl",
+            "shadow-2xl",
             "max-w-md",
+            "w-full",
+            "border",
+            "border-gray-100",
           ],
         },
         [
@@ -61,34 +115,63 @@ const createWelcomeScreen = () =>
           ]),
           createElement(
             "h1",
-            { class: ["text-3xl", "font-bold", "text-gray-800", "mb-4"] },
-            "Bienvenue dans l'Application"
+            { class: ["text-3xl", "font-bold", "text-gray-800", "mb-2"] },
+            "Bienvenue !"
           ),
           createElement(
             "p",
             { class: ["text-gray-600", "mb-6"] },
-            "Connectez-vous pour accéder à vos messages et discussions"
+            "Veuillez choisir une option pour continuer :"
           ),
           createElement(
-            "button",
-            {
-              class: [
-                "bg-blue-500",
-                "text-white",
-                "px-8",
-                "py-3",
-                "rounded-full",
-                "text-lg",
-                "font-medium",
-                "hover:bg-blue-600",
-                "transition",
-                "shadow-lg",
-                "hover:shadow-xl",
-              ],
-              onclick: () => authManager.showLogin(),
-            },
-            "🔐 Se connecter"
+            "div",
+            { class: ["flex", "justify-center", "space-x-4", "mb-6"] },
+            [
+              createElement(
+                "button",
+                {
+                  id: "loginButton",
+                  class: [
+                    "bg-blue-500",
+                    "text-white",
+                    "px-8",
+                    "py-3",
+                    "rounded-full",
+                    "text-lg",
+                    "font-medium",
+                    "hover:bg-blue-600",
+                    "transition",
+                    "shadow-lg",
+                    "hover:shadow-xl",
+                  ],
+                  onclick: showLogin,
+                },
+                "🔐 Se connecter"
+              ),
+              createElement(
+                "button",
+                {
+                  id: "registerButton",
+                  class: [
+                    "bg-green-500",
+                    "text-white",
+                    "px-8",
+                    "py-3",
+                    "rounded-full",
+                    "text-lg",
+                    "font-medium",
+                    "hover:bg-green-600",
+                    "transition",
+                    "shadow-lg",
+                    "hover:shadow-xl",
+                  ],
+                  onclick: showRegister,
+                },
+                "➕ Créer un compte"
+              ),
+            ]
           ),
+          formContainer,
           createElement(
             "div",
             { class: ["mt-4", "text-sm", "text-gray-500"] },
@@ -101,6 +184,12 @@ const createWelcomeScreen = () =>
       ),
     ]
   );
+
+  // Show login by default
+  setTimeout(showLogin, 0);
+
+  return welcomeScreen;
+};
 
 const initSecureApp = async () => {
   try {
@@ -122,9 +211,7 @@ const initSecureApp = async () => {
     );
 
     // Création et ajout des modales
-    const contactModal = await createRegisterModal(() =>
-      validateForm(updateDiscussionList)
-    );
+    const contactModal = await createRegisterModal(validateContactForm);
     const groupModal = await createRegisterModalGroups(() =>
       validateGroupForm(updateDiscussionList)
     );
@@ -136,7 +223,7 @@ const initSecureApp = async () => {
 
     // Initialisation des listes avec les nouvelles fonctions
     try {
-      const users = await fetchUsers();
+      const { users } = await loadContactsData();
       updateContactList(users);
     } catch (error) {
       console.error("Erreur lors du chargement des contacts:", error);
@@ -229,24 +316,24 @@ const initApp = () => {
   const statusIndicator = createElement(
     "div",
     {
-      class: [
-        "fixed",
-        "bottom-4",
-        "left-4",
-        "bg-gray-800",
-        "text-white",
-        "px-3",
-        "py-1",
-        "rounded-full",
-        "text-xs",
-        "z-50",
-        "transition",
-        "cursor-pointer",
-      ],
-      id: "connectionStatus",
-      title: "Cliquez pour voir les détails",
-    },
-    "🔒 Non connecté"
+      // class: [
+      //   "fixed",
+      //   "bottom-4",
+      //   "left-4",
+      //   "bg-gray-800",
+      //   "text-white",
+      //   "px-3",
+      //   "py-1",
+      //   "rounded-full",
+      //   "text-xs",
+      //   "z-50",
+      //   "transition",
+      //   "cursor-pointer",
+      // ],
+      // id: "connectionStatus",
+      // title: "Cliquez pour voir les détails",
+    }
+    // "🔒 Non connecté"
   );
 
   statusIndicator.onclick = () => {
@@ -338,7 +425,6 @@ const getUserInfo = () => ({
 });
 
 const logUserAction = (action, details = {}) => {
-  const userData = getCurrentUserData();
   const logEntry = {
     timestamp: new Date().toISOString(),
     user: userData?.name || "Inconnu",
@@ -346,11 +432,6 @@ const logUserAction = (action, details = {}) => {
     action: action,
     details: details,
   };
-
-  console.log(
-    `📝 Action: ${action} par ${userData?.name || "Utilisateur inconnu"}`,
-    logEntry
-  );
 
   try {
     const logs = JSON.parse(localStorage.getItem("userActionLogs") || "[]");

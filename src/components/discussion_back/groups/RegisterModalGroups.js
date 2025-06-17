@@ -1,5 +1,5 @@
 import { createElement } from "../../../utils/element.js";
-import { readData } from "../../../utils/data.js";
+import { readData } from "../../../utils/data";
 
 const createInputField = (
   id,
@@ -97,7 +97,7 @@ const createCheckboxField = (id, label, name, value) =>
     ),
   ]);
 
-const createMembersCheckboxField = (id, label, options) =>
+export const createMembersCheckboxField = (id, label, options) =>
   createElement("div", { class: ["mb-3"] }, [
     createElement("label", { class: ["block", "mb-1", "text-sm"] }, label),
     createElement(
@@ -128,16 +128,12 @@ const createMembersCheckboxField = (id, label, options) =>
 
 const createRegisterModalGroups = async (onSubmit) => {
   const data = await readData("users");
-  const currentUserId = 1; // Replace with actual current user ID
-  const contacts = (data || []).filter(
-    (c) => !c.delete && !c.archive && c.id !== currentUserId
-  );
+  const contacts = (data || []).filter((c) => !c.delete && !c.archive);
 
   const contactOptions = contacts.map((contact) => ({
     value: contact.id,
     label: `${contact.nom}${contact.prenom ? ` ${contact.prenom}` : ""}`,
   }));
-
   return createElement(
     "div",
     {
@@ -181,17 +177,14 @@ const createRegisterModalGroups = async (onSubmit) => {
               true,
               "Entrez le nom du groupe"
             ),
-            createElement(
-              "div",
-              { class: ["mt-4", "mb-2", "text-sm", "text-gray-600"] },
-              "Sélectionnez les membres du groupe :"
-            ),
             createMembersCheckboxField("membre", "Membres", contactOptions),
-            createElement(
-              "div",
-              { class: ["mt-2", "text-xs", "text-gray-500", "italic"] },
-              "Vous serez automatiquement ajouté comme administrateur du groupe"
+            createMembersCheckboxField(
+              "admin",
+              "Administrateurs",
+              contactOptions
             ),
+            // createSelectField("admin", "Administrateurs", contactOptions),
+            createCheckboxField("status", "Statut actif"),
             createElement(
               "button",
               {
@@ -217,5 +210,4 @@ const createRegisterModalGroups = async (onSubmit) => {
   );
 };
 
-export { createMembersCheckboxField };
 export default createRegisterModalGroups;

@@ -1,4 +1,8 @@
 import { createElement } from "../../utils/element.js";
+import { createRegisterModal } from "./contacts/RegisterModal.js";
+import { validateContactForm } from "../../eventHandlers.js";
+import { getSelectedContacts } from "./contacts/selectedContactsManager.js";
+import { archiveContacts, desarchiveContacts } from "../../utils/data.js";
 
 import { updateGroupsList } from "./groups/group.js";
 import {
@@ -72,11 +76,91 @@ const createDiscussion = () => {
     ]
   );
 
+  const updateDiscussionList = async () => {
+    await updateContactList();
+    await updateGroupsList();
+  };
+
   return {
     body: discussion,
+    update: updateDiscussionList,
     updateContactList,
     updateGroupsList,
   };
+};
+
+const createToolbar = () => {
+  return createElement(
+    "div",
+    {
+      class: ["flex", "items-center", "justify-between", "p-4", "border-b"],
+    },
+    [
+      createElement(
+        "div",
+        {
+          class: ["flex", "items-center", "gap-2"],
+        },
+        [
+          createElement(
+            "button",
+            {
+              class: [
+                "p-2",
+                "rounded-full",
+                "hover:bg-gray-100",
+                "transition",
+                "flex",
+                "items-center",
+                "gap-2",
+              ],
+              onclick: () => {
+                const isArchiveView =
+                  document.getElementById("discussionList").dataset.view ===
+                  "archive";
+                const newView = isArchiveView ? "normal" : "archive";
+                document.getElementById("discussionList").dataset.view =
+                  newView;
+                if (newView === "archive") {
+                  updateContactListArchive();
+                } else {
+                  updateContactList();
+                }
+              },
+            },
+            [
+              createElement("i", {
+                class: ["fas", "fa-box-archive"],
+              }),
+              createElement("span", {}, "Voir les archives"),
+            ]
+          ),
+        ]
+      ),
+      createElement(
+        "div",
+        {
+          class: ["flex", "items-center", "gap-2"],
+        },
+        [
+          createElement(
+            "button",
+            {
+              class: ["p-2", "rounded-full", "hover:bg-gray-100", "transition"],
+              onclick: () => {
+                const modal = createRegisterModal(validateContactForm);
+                document.body.appendChild(modal);
+                modal.classList.remove("hidden");
+              },
+            },
+            createElement("i", {
+              class: ["fas", "fa-plus"],
+            })
+          ),
+        ]
+      ),
+    ]
+  );
 };
 
 export default createDiscussion;

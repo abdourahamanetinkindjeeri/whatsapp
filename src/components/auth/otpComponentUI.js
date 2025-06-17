@@ -259,8 +259,8 @@ function createUserStatusDisplay(username) {
       ],
       id: ELEMENT_IDS.USER_STATUS,
       style: { backgroundColor: "#f0e7d8" },
-    },
-    [createUserIcon(), createUsernameDisplay(username), createLogoutButton()]
+    }
+    // [createUserIcon(), createUsernameDisplay(username), createLogoutButton()]
   );
 }
 

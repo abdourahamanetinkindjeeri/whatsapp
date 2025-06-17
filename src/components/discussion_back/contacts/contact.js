@@ -6,8 +6,6 @@ import { readData } from "../../../utils/data.js";
 import {
   getSelectedContacts,
   resetSelectedContacts,
-  addSelectedContact,
-  removeSelectedContact,
 } from "./selectedContactsManager.js";
 
 // Import de l'API de messagerie (ajustez le chemin selon votre structure)
@@ -23,93 +21,100 @@ let currentlySelectedContactElement = null;
 
 // Fonction pour créer un élément de contact avec gestion du clic
 const createContactElement = (contact) => {
-  const isSelected = getSelectedContacts().includes(String(contact.id));
   return createElement(
     "div",
     {
       class: [
         "contact-item",
         "p-3",
-        "hover:bg-gray-100",
         "cursor-pointer",
+        "hover:bg-gray-50",
         "transition",
-        "flex",
-        "items-center",
-        "gap-3",
-        isSelected ? "bg-blue-100" : "",
+        "border-b",
+        "border-gray-100",
       ],
       "data-contact-id": contact.id,
-      ondblclick: (e) => {
-        e.stopPropagation();
-        const contactId = String(contact.id);
-        if (isSelected) {
-          removeSelectedContact(contactId);
-        } else {
-          addSelectedContact(contactId);
-        }
-        // Mettre à jour l'apparence de l'élément
-        e.currentTarget.classList.toggle("bg-blue-100");
-      },
-      onclick: (e) => {
-        if (!e.ctrlKey && !e.metaKey) {
-          // Si on clique sans Ctrl/Cmd, on désélectionne tout et on sélectionne uniquement ce contact
-          resetSelectedContacts();
-          document
-            .querySelectorAll(".contact-item")
-            .forEach((el) => el.classList.remove("bg-blue-100"));
-          addSelectedContact(String(contact.id));
-          e.currentTarget.classList.add("bg-blue-100");
-        }
-        handleContactClick(e, contact);
-      },
-      oncontextmenu: (e) => {
-        e.preventDefault();
-        showContactContextMenu(e, contact);
-      },
+      onclick: (event) => handleContactClick(event, contact),
     },
     [
       createElement(
         "div",
         {
-          class: [
-            "w-10",
-            "h-10",
-            "rounded-full",
-            "bg-gray-300",
-            "flex",
-            "items-center",
-            "justify-center",
-          ],
+          class: ["flex", "items-center", "gap-3"],
         },
         [
-          createElement(
-            "span",
-            {
-              class: ["text-gray-600", "font-semibold"],
-            },
-            (contact.nom || contact.name || "?").charAt(0).toUpperCase()
-          ),
-        ]
-      ),
-      createElement(
-        "div",
-        {
-          class: ["flex-1"],
-        },
-        [
+          // Avatar du contact
           createElement(
             "div",
             {
-              class: ["font-medium"],
+              class: [
+                "w-10",
+                "h-10",
+                "rounded-full",
+                "bg-gray-200",
+                "flex",
+                "items-center",
+                "justify-center",
+                "flex-shrink-0",
+                "overflow-hidden",
+              ],
             },
-            contact.nom || contact.name || "Sans nom"
+            contact.profile && contact.profile.avatar
+              ? createElement("img", {
+                  src: contact.profile.avatar,
+                  alt: contact.nom || contact.name || `Contact ${contact.id}`,
+                  class: ["w-full", "h-full", "object-cover"],
+                  onerror: (e) => {
+                    e.target.style.display = "none";
+                    e.target.parentElement.innerHTML =
+                      '<i class="fas fa-user text-gray-600 text-sm"></i>';
+                  },
+                })
+              : createElement("i", {
+                  class: ["fas", "fa-user", "text-gray-600", "text-sm"],
+                })
           ),
+
+          // Informations du contact
           createElement(
             "div",
             {
-              class: ["text-sm", "text-gray-500"],
+              class: ["flex-1", "min-w-0"], // min-w-0 pour éviter l'overflow
             },
-            contact.telephone || "Pas de numéro"
+            [
+              createElement(
+                "div",
+                {
+                  class: ["font-medium", "text-gray-900", "truncate"],
+                },
+                contact.nom || contact.name || `Contact ${contact.id}`
+              ),
+              createElement(
+                "div",
+                {
+                  class: ["text-sm", "text-gray-500", "truncate"],
+                },
+                contact.telephone || contact.phone || "Pas de téléphone"
+              ),
+            ]
+          ),
+
+          // Indicateur de statut (optionnel)
+          createElement(
+            "div",
+            {
+              class: ["flex-shrink-0"],
+            },
+            [
+              createElement("div", {
+                class: [
+                  "w-3",
+                  "h-3",
+                  "rounded-full",
+                  contact.online ? "bg-green-400" : "bg-gray-300",
+                ],
+              }),
+            ]
           ),
         ]
       ),
@@ -286,101 +291,6 @@ const diagnoseMesagingIntegration = () => {
   }
 
   console.groupEnd();
-};
-
-// Fonction pour afficher le menu contextuel
-const showContactContextMenu = async (event, contact) => {
-  const menu = createElement(
-    "div",
-    {
-      class: [
-        "fixed",
-        "bg-white",
-        "rounded-lg",
-        "shadow-lg",
-        "py-2",
-        "min-w-[200px]",
-        "z-50",
-      ],
-      style: {
-        top: `${event.clientY}px`,
-        left: `${event.clientX}px`,
-      },
-    },
-    [
-      createElement(
-        "button",
-        {
-          class: [
-            "w-full",
-            "px-4",
-            "py-2",
-            "text-left",
-            "hover:bg-gray-100",
-            "flex",
-            "items-center",
-            "gap-2",
-          ],
-          onclick: async () => {
-            try {
-              await archiveContacts([contact.id]);
-              alert("Contact archivé avec succès");
-              updateContactList();
-              menu.remove();
-            } catch (error) {
-              console.error("Erreur lors de l'archivage:", error);
-              alert("Erreur lors de l'archivage du contact");
-            }
-          },
-        },
-        [
-          createElement("i", { class: ["fas", "fa-box-archive"] }),
-          "Archiver le contact",
-        ]
-      ),
-      createElement(
-        "button",
-        {
-          class: [
-            "w-full",
-            "px-4",
-            "py-2",
-            "text-left",
-            "hover:bg-gray-100",
-            "flex",
-            "items-center",
-            "gap-2",
-          ],
-          onclick: async () => {
-            try {
-              await desarchiveContacts([contact.id]);
-              alert("Contact désarchivé avec succès");
-              updateContactList();
-              menu.remove();
-            } catch (error) {
-              console.error("Erreur lors du désarchivage:", error);
-              alert("Erreur lors du désarchivage du contact");
-            }
-          },
-        },
-        [
-          createElement("i", { class: ["fas", "fa-box-open"] }),
-          "Désarchiver le contact",
-        ]
-      ),
-    ]
-  );
-
-  // Fermer le menu en cliquant ailleurs
-  const closeMenu = (e) => {
-    if (!menu.contains(e.target)) {
-      menu.remove();
-      document.removeEventListener("click", closeMenu);
-    }
-  };
-
-  document.addEventListener("click", closeMenu);
-  document.body.appendChild(menu);
 };
 
 // ===== EXPORTS =====

@@ -94,7 +94,25 @@ function requireAuthentication(action) {
 
 export const authManager = {
   isAuthenticated: () => authenticationState.isAuthenticated,
-  getCurrentUser: () => authenticationState.currentUser,
+  getCurrentUser: () => {
+    const user = authenticationState.currentUser;
+    const contact = authenticationState.currentUserContact;
+
+    if (!user && !contact) return null;
+
+    return {
+      ...user,
+      ...contact,
+      avatar: contact?.profile?.avatar || contact?.avatar || null,
+      name: contact?.name || contact?.nom || contact?.prenom || "Utilisateur",
+      initial: (
+        contact?.name?.[0] ||
+        contact?.nom?.[0] ||
+        contact?.prenom?.[0] ||
+        "U"
+      ).toUpperCase(),
+    };
+  },
   getCurrentUserContact: () => authenticationState.currentUserContact,
   showLogin: showLoginModal,
   logout: handleLogout,

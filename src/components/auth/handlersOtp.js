@@ -52,7 +52,14 @@ async function handlePhoneVerification() {
 }
 
 function processSuccessfulPhoneVerification(contact) {
-  authenticationState.currentUserContact = contact;
+  authenticationState.currentUserContact = {
+    ...contact,
+    profile: contact.profile || {
+      avatar: null,
+      status: "En ligne",
+      bio: "",
+    },
+  };
   authenticationState.currentUser = contact.name;
 
   const otp = generateRandomOTP();

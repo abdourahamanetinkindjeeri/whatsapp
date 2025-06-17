@@ -129,4 +129,4 @@ const createRegisterModal = (onSubmit) =>
     ]
   );
 
-export { createRegisterModal };
+export default createRegisterModal;

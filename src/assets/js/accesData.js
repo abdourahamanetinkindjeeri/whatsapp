@@ -104,4 +104,27 @@ async function createUser(userData) {
   }
 }
 
-export { fetchUsers, fetchMessages, sendMessage, createUser };
+async function archiveContact(contactId) {
+  try {
+    const response = await fetch(`${ROUTES.USERS}/${contactId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ archive: true }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Erreur lors de l'archivage du contact:", error);
+    throw error;
+  }
+}
+
+export { fetchUsers, fetchMessages, sendMessage, createUser, archiveContact };
