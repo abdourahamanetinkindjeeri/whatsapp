@@ -14,5 +14,13 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "VITE_API_URL": "https://whatsapp-clone-wmxm.onrender.com"
+  },
+  "build": {
+    "env": {
+      "NODE_VERSION": "18.x"
+    }
+  }
 }
