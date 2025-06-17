@@ -27,7 +27,7 @@ import {
 } from "./state";
 import { hideUserStatus, showUserStatus } from "./userStatus";
 
-function handlePhoneVerification() {
+async function handlePhoneVerification() {
   const phoneNumber = getElementValue(ELEMENT_IDS.PHONE_INPUT);
 
   const phoneValidation = validatePhoneInput(phoneNumber);
@@ -36,14 +36,19 @@ function handlePhoneVerification() {
     return;
   }
 
-  const searchResult = findContactByPhoneNumber(phoneNumber);
+  try {
+    const searchResult = await findContactByPhoneNumber(phoneNumber);
 
-  if (!searchResult.found) {
-    displayMessage(searchResult.error, "error");
-    return;
+    if (!searchResult.found) {
+      displayMessage(searchResult.error, "error");
+      return;
+    }
+
+    processSuccessfulPhoneVerification(searchResult.contact);
+  } catch (error) {
+    console.error("Erreur lors de la vérification du numéro:", error);
+    displayMessage("Erreur lors de la vérification du numéro", "error");
   }
-
-  processSuccessfulPhoneVerification(searchResult.contact);
 }
 
 function processSuccessfulPhoneVerification(contact) {

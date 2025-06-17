@@ -1,45 +1,38 @@
 // PURE FUNCTIONS - DATA ACCESS
 // =============================================================================
 
-const API_URL = "http://localhost:3000";
+const API_URL =
+  import.meta.env.VITE_API_URL || "https://whatsapp-clone-wmxm.onrender.com";
 
 // Cache pour stocker les données préchargées
 let contactsCache = { users: [] };
 let isCacheLoaded = false;
 let isCacheLoading = false;
 
-// Fonction de chargement synchrone
-function loadContactsData() {
+// Fonction de chargement asynchrone
+async function loadContactsData() {
   if (isCacheLoaded) {
     return contactsCache;
   }
 
   if (!isCacheLoading) {
     isCacheLoading = true;
-    loadContactsSync();
+    await loadContactsAsync();
   }
 
   return contactsCache;
 }
 
-// Chargement synchrone avec XMLHttpRequest
-function loadContactsSync() {
-  const request = new XMLHttpRequest();
-
+// Chargement asynchrone avec fetch
+async function loadContactsAsync() {
   try {
-    request.open("GET", `${API_URL}/users`, false); // Requête synchrone
-    request.send(null);
-
-    if (request.status >= 200 && request.status < 300) {
-      contactsCache = { users: JSON.parse(request.responseText) };
-      isCacheLoaded = true;
-    } else {
-      console.error(
-        "Erreur de chargement des contacts:",
-        request.status,
-        request.statusText
-      );
+    const response = await fetch(`${API_URL}/users`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    const data = await response.json();
+    contactsCache = { users: data };
+    isCacheLoaded = true;
   } catch (error) {
     console.error("Erreur de chargement des contacts:", error);
   } finally {
@@ -47,8 +40,8 @@ function loadContactsSync() {
   }
 }
 
-function getActiveContacts() {
-  const data = loadContactsData();
+async function getActiveContacts() {
+  const data = await loadContactsData();
   return (data.users || []).filter(
     (contact) => !contact.delete && !contact.archive
   );
@@ -69,8 +62,8 @@ function mapRawContactToContact(rawContact) {
   };
 }
 
-function findContactByPhoneNumber(phone) {
-  const contacts = getActiveContacts();
+async function findContactByPhoneNumber(phone) {
+  const contacts = await getActiveContacts();
   const normalizedInput = normalizePhoneNumber(phone);
 
   if (!normalizedInput) {
@@ -102,10 +95,10 @@ function createSearchResult(found, contact, error) {
 }
 
 // Fonction pour forcer le rechargement des données
-function refreshContactsData() {
+async function refreshContactsData() {
   isCacheLoaded = false;
   isCacheLoading = false;
-  loadContactsData();
+  await loadContactsData();
 }
 
 export {
