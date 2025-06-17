@@ -11,6 +11,11 @@ import {
   handleModalClose,
 } from "./eventHandlers.js";
 import { authManager } from "./components/auth/authManager.js";
+import {
+  fetchUsers,
+  fetchMessages,
+  sendMessage,
+} from "./assets/js/accesData.js";
 
 // 🔐 Variables globales pour l'état de l'app
 let appInitialized = false;
@@ -98,53 +103,56 @@ const createWelcomeScreen = () =>
   );
 
 const initSecureApp = async () => {
-  const {
-    body: discussion,
-    update: updateDiscussionList,
-    updateContactList,
-    updateGroupsList,
-  } = createDiscussion();
+  try {
+    const {
+      body: discussion,
+      update: updateDiscussionList,
+      updateContactList,
+      updateGroupsList,
+    } = createDiscussion();
 
-  const app = createElement(
-    "div",
-    { class: ["flex", "w-[95vw]", "h-[95vh]", "bg-white"] },
-    [
-      createSidebar(updateContactList, updateGroupsList),
-      discussion,
-      createMessage(),
-    ]
-  );
+    const app = createElement(
+      "div",
+      { class: ["flex", "w-[95vw]", "h-[95vh]", "bg-white"] },
+      [
+        createSidebar(updateContactList, updateGroupsList),
+        discussion,
+        createMessage(),
+      ]
+    );
 
-  // Création et ajout des modales
-  const contactModal = await createRegisterModal(() =>
-    validateForm(updateDiscussionList)
-  );
-  const groupModal = await createRegisterModalGroups(() =>
-    validateGroupForm(updateDiscussionList)
-  );
+    // Création et ajout des modales
+    const contactModal = await createRegisterModal(() =>
+      validateForm(updateDiscussionList)
+    );
+    const groupModal = await createRegisterModalGroups(() =>
+      validateGroupForm(updateDiscussionList)
+    );
 
-  // Ajout des éléments au DOM
-  document.body.appendChild(app);
-  document.body.appendChild(contactModal);
-  document.body.appendChild(groupModal);
+    // Ajout des éléments au DOM
+    document.body.appendChild(app);
+    document.body.appendChild(contactModal);
+    document.body.appendChild(groupModal);
 
-  // Log pour débogage
-  console.log("Modales ajoutées au DOM:", {
-    contactModal: document.getElementById("registerModal"),
-    groupModal: document.getElementById("registerModalGroup"),
-  });
+    // Initialisation des listes avec les nouvelles fonctions
+    try {
+      const users = await fetchUsers();
+      updateContactList(users);
+    } catch (error) {
+      console.error("Erreur lors du chargement des contacts:", error);
+    }
 
-  // Initialisation des listes
-  await updateDiscussionList();
+    window.addEventListener("click", handleModalClose);
 
-  window.addEventListener("click", handleModalClose);
+    // Marquer l'app comme initialisée
+    appInitialized = true;
+    appContainer = app;
 
-  // Marquer l'app comme initialisée
-  appInitialized = true;
-  appContainer = app;
-
-  console.log("✅ Application sécurisée initialisée");
-  console.log("👤 Utilisateur connecté:", getCurrentUserData());
+    console.log("✅ Application sécurisée initialisée");
+    console.log("👤 Utilisateur connecté:", getCurrentUserData());
+  } catch (error) {
+    console.error("Erreur lors de l'initialisation de l'application:", error);
+  }
 };
 
 // 🆕 NOUVEAU : Gestionnaire de l'état d'authentification
