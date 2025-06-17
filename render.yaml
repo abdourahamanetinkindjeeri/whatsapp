@@ -4,9 +4,15 @@ services:
     runtime: node
     env: node
     buildCommand: |
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+      nvm use
       cd src/server
       npm install
     startCommand: |
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+      nvm use
       cd src/server
       node server.js
     envVars:
