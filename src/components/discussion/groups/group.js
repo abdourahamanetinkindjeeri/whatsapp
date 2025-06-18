@@ -1310,11 +1310,206 @@ export const updateGroupsList = async () => {
                     ],
                     onclick: (e) => {
                       e.stopPropagation();
-                      showEditGroupModal(group.id);
+                      createConfirmationModal(
+                        group.archive
+                          ? "Désarchiver le groupe"
+                          : "Archiver le groupe",
+                        `Êtes-vous sûr de vouloir ${
+                          group.archive ? "désarchiver" : "archiver"
+                        } ce groupe ?`,
+                        async () => {
+                          try {
+                            await archiveGroups([group.id]);
+                            await updateGroupsList();
+                          } catch (error) {
+                            console.error(
+                              "Erreur lors de l'archivage/désarchivage du groupe:",
+                              error
+                            );
+                          }
+                        }
+                      );
                     },
                   },
                   createElement("i", {
-                    class: ["fas", "fa-edit"],
+                    class: [
+                      "fas",
+                      group.archive ? "fa-box-open" : "fa-box-archive",
+                    ],
+                  })
+                ),
+            ]
+          ),
+        ]
+      );
+    })
+  );
+};
+
+// Fonction pour afficher les groupes archivés
+export const updateGroupsListArchive = async () => {
+  const discussionList = document.getElementById("discussionList");
+  if (!discussionList) {
+    console.error("discussionList non initialisé.");
+    return;
+  }
+
+  discussionList.innerHTML = "";
+
+  const groups = (await readData("groups")).filter(
+    (item) => item.delete === false && item.archive === true
+  );
+
+  if (groups.length === 0) {
+    discussionList.append(
+      createElement(
+        "div",
+        {
+          class: ["p-3", "text-gray-600", "text-center"],
+        },
+        "Aucun groupe archivé à afficher"
+      )
+    );
+    return;
+  }
+
+  discussionList.append(
+    ...groups.map((group) => {
+      const currentUser = authManager.getCurrentUserContact();
+      const isAdmin = isUserAdmin(group, currentUser?.id);
+
+      return createElement(
+        "div",
+        {
+          class: [
+            "flex",
+            "items-center",
+            "p-2",
+            "border-b",
+            "border-gray-200",
+            "hover:bg-gray-100",
+            "cursor-pointer",
+            "group",
+          ],
+        },
+        [
+          createElement(
+            "div",
+            {
+              class: ["flex", "items-center", "gap-3", "flex-1"],
+              onclick: async () => {
+                const { selectContact } = await import(
+                  "../../messages/Message.js"
+                );
+                console.log("Selecting group:", group.id, group.nom);
+                await selectContact(group.id, group.nom, "group");
+              },
+            },
+            [
+              createElement(
+                "div",
+                {
+                  class: [
+                    "w-10",
+                    "h-10",
+                    "bg-blue-500",
+                    "rounded-full",
+                    "flex",
+                    "items-center",
+                    "justify-center",
+                    "text-white",
+                  ],
+                },
+                createElement("i", {
+                  class: ["fas", "fa-users"],
+                })
+              ),
+              createElement(
+                "div",
+                {
+                  class: ["flex-1"],
+                },
+                [
+                  createElement(
+                    "div",
+                    {
+                      class: ["font-medium"],
+                    },
+                    group.nom || "Groupe sans nom"
+                  ),
+                  createElement(
+                    "div",
+                    {
+                      class: ["text-sm", "text-gray-500"],
+                    },
+                    `${group.membres?.length || 0} membres`
+                  ),
+                ]
+              ),
+            ]
+          ),
+          // Boutons d'action
+          createElement(
+            "div",
+            {
+              class: [
+                "flex",
+                "gap-2",
+                "opacity-0",
+                "group-hover:opacity-100",
+                "transition-opacity",
+              ],
+            },
+            [
+              createElement(
+                "button",
+                {
+                  class: [
+                    "p-2",
+                    "text-gray-500",
+                    "hover:text-blue-500",
+                    "transition-colors",
+                  ],
+                  onclick: (e) => {
+                    e.stopPropagation();
+                    showGroupDetails(group.id);
+                  },
+                },
+                createElement("i", {
+                  class: ["fas", "fa-info-circle"],
+                })
+              ),
+              isAdmin &&
+                createElement(
+                  "button",
+                  {
+                    class: [
+                      "p-2",
+                      "text-gray-500",
+                      "hover:text-blue-500",
+                      "transition-colors",
+                    ],
+                    onclick: (e) => {
+                      e.stopPropagation();
+                      createConfirmationModal(
+                        "Désarchiver le groupe",
+                        "Êtes-vous sûr de vouloir désarchiver ce groupe ?",
+                        async () => {
+                          try {
+                            await archiveGroups([group.id]);
+                            await updateGroupsListArchive();
+                          } catch (error) {
+                            console.error(
+                              "Erreur lors du désarchivage du groupe:",
+                              error
+                            );
+                          }
+                        }
+                      );
+                    },
+                  },
+                  createElement("i", {
+                    class: ["fas", "fa-box-open"],
                   })
                 ),
             ]
@@ -1334,4 +1529,5 @@ export {
   handleGroupModification,
   showEditGroupModal,
   showGroupDetails,
+  updateGroupsListArchive,
 };

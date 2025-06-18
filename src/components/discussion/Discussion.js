@@ -135,6 +135,39 @@ const createToolbar = () => {
               createElement("span", {}, "Voir les archives"),
             ]
           ),
+          createElement(
+            "button",
+            {
+              class: [
+                "p-2",
+                "rounded-full",
+                "hover:bg-gray-100",
+                "transition",
+                "flex",
+                "items-center",
+                "gap-2",
+              ],
+              onclick: () => {
+                const isGroupArchiveView =
+                  document.getElementById("discussionList").dataset.view ===
+                  "group_archive";
+                const newView = isGroupArchiveView ? "normal" : "group_archive";
+                document.getElementById("discussionList").dataset.view =
+                  newView;
+                if (newView === "group_archive") {
+                  updateGroupsListArchive();
+                } else {
+                  updateGroupsList();
+                }
+              },
+            },
+            [
+              createElement("i", {
+                class: ["fas", "fa-users"],
+              }),
+              createElement("span", {}, "Voir les groupes archivés"),
+            ]
+          ),
         ]
       ),
       createElement(
