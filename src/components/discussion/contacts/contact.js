@@ -9,6 +9,7 @@ import {
   addSelectedContact,
   removeSelectedContact,
 } from "./selectedContactsManager.js";
+import { showNotification } from "../../../utils/notifications.js";
 
 // Import de l'API de messagerie (ajustez le chemin selon votre structure)
 // Si Message.js est dans le même dossier : './Message.js'
@@ -324,12 +325,14 @@ const showContactContextMenu = async (event, contact) => {
           onclick: async () => {
             try {
               await archiveContacts([contact.id]);
-              alert("Contact archivé avec succès");
-              updateContactList();
-              menu.remove();
+              await updateContactList();
+              showNotification("Contact archivé avec succès", "success");
             } catch (error) {
-              console.error("Erreur lors de l'archivage:", error);
-              alert("Erreur lors de l'archivage du contact");
+              console.error("Erreur lors de l'archivage du contact:", error);
+              showNotification(
+                "Erreur lors de l'archivage du contact",
+                "error"
+              );
             }
           },
         },
@@ -354,12 +357,14 @@ const showContactContextMenu = async (event, contact) => {
           onclick: async () => {
             try {
               await desarchiveContacts([contact.id]);
-              alert("Contact désarchivé avec succès");
-              updateContactList();
-              menu.remove();
+              await updateContactListArchive();
+              showNotification("Contact désarchivé avec succès", "success");
             } catch (error) {
-              console.error("Erreur lors du désarchivage:", error);
-              alert("Erreur lors du désarchivage du contact");
+              console.error("Erreur lors du désarchivage du contact:", error);
+              showNotification(
+                "Erreur lors du désarchivage du contact",
+                "error"
+              );
             }
           },
         },

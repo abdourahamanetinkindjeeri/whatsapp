@@ -7,6 +7,7 @@ import {
 import { createElement } from "../../../utils/element.js";
 import { readData, patchData, addData } from "../../../utils/data.js";
 import { authManager } from "../../auth/authManager.js";
+import { showNotification } from "../../../utils/notifications.js";
 
 // Fonction pour créer une modale de confirmation
 const createConfirmationModal = (title, message, onConfirm) => {
@@ -924,7 +925,7 @@ const showEditGroupModal = async (groupId) => {
         .value.trim();
 
       if (!newName) {
-        alert("Le nom du groupe est requis");
+        showNotification("Le nom du groupe est requis", "warning");
         return;
       }
 
@@ -944,9 +945,10 @@ const showEditGroupModal = async (groupId) => {
 
         modal.remove();
         await updateGroupsList();
+        showNotification("Groupe modifié avec succès", "success");
       } catch (error) {
         console.error("Erreur lors de la modification du groupe:", error);
-        alert("Erreur lors de la modification du groupe");
+        showNotification("Erreur lors de la modification du groupe", "error");
       }
     });
 
@@ -958,7 +960,7 @@ const showEditGroupModal = async (groupId) => {
     });
   } catch (error) {
     console.error("Erreur lors de l'affichage de la modal d'édition:", error);
-    alert(error.message);
+    showNotification(error.message, "error");
   }
 };
 

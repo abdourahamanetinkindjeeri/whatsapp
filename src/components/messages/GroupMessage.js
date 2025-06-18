@@ -2,6 +2,7 @@ import { createElement } from "../../utils/element.js";
 import { readData, addData } from "../../utils/data.js";
 import { authManager } from "../auth/authManager.js";
 import { updateChatHeader } from "./Message.js";
+import { showNotification } from "../../utils/notifications.js";
 
 // Fonction pour envoyer un message dans un groupe
 const sendGroupMessage = async (groupId, content) => {
@@ -74,6 +75,7 @@ const sendGroupMessage = async (groupId, content) => {
     return { success: true, message: groupMessage };
   } catch (error) {
     console.error("Erreur lors de l'envoi du message de groupe:", error);
+    showNotification(error.message, "error");
     return { success: false, error: error.message };
   }
 };

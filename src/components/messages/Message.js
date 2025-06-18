@@ -10,6 +10,7 @@ import {
 import { createElement } from "../../utils/element.js";
 import { authManager } from "../auth/authManager.js";
 import { formatTime } from "../../utils/date.js";
+import { showNotification } from "../../utils/notifications.js";
 
 // ===== VARIABLES GLOBALES =====
 let currentRecipient = null;
@@ -843,7 +844,7 @@ const createMessageButtons = () =>
           updateContactList();
           updateContactListArchive();
           resetSelectedContacts();
-          alert("Contacts archivés/désarchivés avec succès.");
+          showNotification("Contacts archivés avec succès", "success");
         } else {
           console.log(
             "Aucun changement de statut d'archive pour les contacts sélectionnés."
