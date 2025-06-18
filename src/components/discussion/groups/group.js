@@ -1133,7 +1133,7 @@ const showGroupDetails = async (groupId) => {
 };
 
 // Mise à jour de la fonction updateGroupsList
-export const updateGroupsList = async () => {
+const updateGroupsList = async () => {
   const discussionList = document.getElementById("discussionList");
   if (!discussionList) {
     console.error("discussionList non initialisé.");
