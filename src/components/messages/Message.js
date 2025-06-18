@@ -240,7 +240,7 @@ const displayMessage = async (messageObj, isSentByMe = false) => {
                       );
                       e.target.style.display = "none";
                       e.target.parentElement.innerHTML =
-                        '<i class="fas fa-user text-gray-600 text-sm"></i>';
+                        '<i class="text-sm text-gray-600 fas fa-user"></i>';
                     },
                   })
                 : createElement("i", {
@@ -338,7 +338,7 @@ const displayMessage = async (messageObj, isSentByMe = false) => {
                       );
                       e.target.style.display = "none";
                       e.target.parentElement.innerHTML =
-                        '<i class="fas fa-user text-gray-600 text-sm"></i>';
+                        '<i class="text-sm text-gray-600 fas fa-user"></i>';
                     },
                   })
                 : createElement("i", {
@@ -368,7 +368,7 @@ const loadConversation = async (recipientId) => {
   messagesContainer.innerHTML = `
     <div class="flex justify-center items-center h-full">
       <div class="text-center text-gray-500">
-        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+        <i class="mb-2 text-2xl fas fa-spinner fa-spin"></i>
         <p>Chargement des messages...</p>
       </div>
     </div>
@@ -416,9 +416,9 @@ const loadConversation = async (recipientId) => {
     currentRecipient = recipientId;
   } catch (error) {
     messagesContainer.innerHTML = `
-      <div class="text-center text-red-500 mt-8">
+      <div class="mt-8 text-center text-red-500">
         <p>❌ Erreur lors du chargement des messages</p>
-        <p class="text-sm mt-2">${error.message}</p>
+        <p class="mt-2 text-sm">${error.message}</p>
       </div>
     `;
   }
@@ -448,13 +448,13 @@ const updateChatHeader = (contact, type) => {
   // Vérifier si une photo de profil existe
   const hasProfilePicture = contact.profile?.avatar || contact.avatar;
   const avatarContent = hasProfilePicture
-    ? `<img src="${hasProfilePicture}" alt="${name}" class="w-10 h-10 rounded-full object-cover">`
-    : `<div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white">
+    ? `<img src="${hasProfilePicture}" alt="${name}" class="object-cover w-10 h-10 rounded-full">`
+    : `<div class="flex justify-center items-center w-10 h-10 text-white bg-blue-500 rounded-full">
          <i class="fas ${icon}"></i>
        </div>`;
 
   header.innerHTML = `
-    <div class="flex items-center gap-3">
+    <div class="flex gap-3 items-center">
       ${avatarContent}
       <div class="flex-1">
         <div class="font-medium">${name}</div>
@@ -601,10 +601,9 @@ const showContactSelector = async () => {
   );
 
   if (contacts.length === 0 && activeGroups.length === 0) {
-    alert(
+    throw new Error(
       "Aucun contact ou groupe disponible pour commencer une conversation."
     );
-    return;
   }
 
   const modal = createElement(
@@ -810,10 +809,9 @@ const createMessageButtons = () =>
           console.log(
             "Aucun contact sélectionné pour l'archivage/désarchivage."
           );
-          alert(
+          throw new Error(
             "Veuillez sélectionner au moins un contact pour archiver ou désarchiver."
           );
-          return;
         }
 
         const users = (await readData("users")) || [];

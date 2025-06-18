@@ -593,10 +593,9 @@ const showContactSelector = async () => {
   );
 
   if (contacts.length === 0 && activeGroups.length === 0) {
-    alert(
+    throw new Error(
       "Aucun contact ou groupe disponible pour commencer une conversation."
     );
-    return;
   }
 
   const modal = createElement(
@@ -802,10 +801,9 @@ const createMessageButtons = () =>
           console.log(
             "Aucun contact sélectionné pour l'archivage/désarchivage."
           );
-          alert(
+          throw new Error(
             "Veuillez sélectionner au moins un contact pour archiver ou désarchiver."
           );
-          return;
         }
 
         const users = (await readData("users")) || [];
@@ -836,7 +834,7 @@ const createMessageButtons = () =>
           updateContactList();
           updateContactListArchive();
           resetSelectedContacts();
-          alert("Contacts archivés/désarchivés avec succès.");
+          throw new Error("Contacts archivés/désarchivés avec succès.");
         } else {
           console.log(
             "Aucun changement de statut d'archive pour les contacts sélectionnés."

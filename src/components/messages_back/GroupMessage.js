@@ -186,7 +186,7 @@ const displayGroupMessage = async (messageObj) => {
                   console.error("Erreur de chargement de l'avatar:", e);
                   e.target.style.display = "none";
                   e.target.parentElement.innerHTML =
-                    '<i class="fas fa-user text-gray-600 text-sm"></i>';
+                    '<i class="text-sm text-gray-600 fas fa-user"></i>';
                 },
               })
             : createElement("i", {
@@ -307,7 +307,7 @@ const initGroupChat = async (groupId) => {
     }
   } catch (error) {
     console.error("Error in initGroupChat:", error);
-    alert(error.message);
+    throw new Error(error.message);
   }
 
   console.log("=== End initGroupChat ===");
