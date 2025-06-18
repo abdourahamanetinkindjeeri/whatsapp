@@ -1132,7 +1132,7 @@ const showGroupDetails = async (groupId) => {
   }
 };
 
-// Mise à jour de la fonction updateGroupsList
+// Fonction pour mettre à jour la liste des groupes
 const updateGroupsList = async () => {
   const discussionList = document.getElementById("discussionList");
   if (!discussionList) {
