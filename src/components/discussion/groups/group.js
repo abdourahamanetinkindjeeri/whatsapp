@@ -1349,7 +1349,7 @@ export const updateGroupsList = async () => {
 };
 
 // Fonction pour afficher les groupes archivés
-export const updateGroupsListArchive = async () => {
+const updateGroupsListArchive = async () => {
   const discussionList = document.getElementById("discussionList");
   if (!discussionList) {
     console.error("discussionList non initialisé.");
@@ -1531,5 +1531,6 @@ export {
   handleGroupModification,
   showEditGroupModal,
   showGroupDetails,
+  updateGroupsList,
   updateGroupsListArchive,
 };
